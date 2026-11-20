@@ -37,7 +37,9 @@ jobs:
       - name: Build Pages and offline utility
         run: npm run build:pages
       - name: Verify links and generated JavaScript
-        run: python3 verify-pages.py
+        run: |
+          python3 verify-pages.py
+          node verify-runtime.mjs
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3

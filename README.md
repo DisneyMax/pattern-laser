@@ -35,11 +35,11 @@ The build writes `dist/Pattern_Laser_Utility.html`. Open that file directly in t
 python3 build.py --output dist
 ```
 
-The source modules, HTML template, build script and tests live at the repository root. `standalone/` contains the current prebuilt utility; rebuild it after making changes. `docs/START_HERE.md` retains the historical release and validation notes from the distribution bundle; its original folder references describe that bundle.
+The source modules, `index.template.html`, `styles.css`, `theme-init.js`, build scripts and tests live at the repository root. `standalone/` contains the current prebuilt utility; rebuild it after making changes. `docs/START_HERE.md` retains the historical release and validation notes from the distribution bundle; its original folder references describe that bundle.
 
 ## Validation and limits
 
-The current default suite contains 108 automated geometry, raster, download, UI-controller, appearance and box-selection checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; interactive browser automation and machine processing remain unverified.
+The current default suite contains 117 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; interactive browser automation and machine processing remain unverified.
 
 Raster tracing approximates the printed design. Review the overlay, operation assignments and physical scale before exporting. SVG colours do not include laser power, speed or processing assignments. This version does not assemble tiled sheets, nest pieces or calculate kerf.
 
@@ -51,7 +51,7 @@ PDF.js is pinned to 5.6.205 and licensed under Apache 2.0; its license is includ
 
 The [Test, build and deploy Pages workflow](https://github.com/DisneyMax/pattern-laser/actions/workflows/pages.yml) runs on pushes and pull requests targeting `main`, and can also be started manually.
 
-- Every run installs locked dependencies on Node.js 24 and Python 3.12, runs the regression suite, builds the app, and checks generated JavaScript and local download/guide links.
+- Every run installs locked dependencies on Node.js 24 and Python 3.12, runs the regression suite, builds the app, checks generated JavaScript and local download/guide links, and opens the emitted sample using the emitted PDF engine/worker.
 - Successful pushes to `main` deploy the tested `_site/` artifact to GitHub Pages. Pull requests validate the build without publishing.
 - Failed tests or builds stop deployment. The previously deployed site stays available.
 
@@ -62,8 +62,9 @@ npm ci
 npm test
 npm run build:pages
 python3 verify-pages.py
+node verify-runtime.mjs
 ```
 
-`_site/` contains the hosted app, a freshly built standalone HTML download, guides and samples. It is generated and ignored by Git. The root `index.html` and `standalone/` tracked HTML files are earlier snapshots; the workflow always rebuilds from the source modules. Download the latest offline utility from the live site's Downloads & guide page.
+`_site/` contains the hosted app, a freshly built standalone HTML download, guides and samples. The hosted HTML loads separate CSS, theme bootstrap and app JavaScript, plus separate PDF engine, worker and sample PDF assets. Asset filenames contain content hashes so browsers can cache unchanged files independently. All assets use relative URLs compatible with the `/pattern-laser/` project path. The offline download still embeds its CSS, JavaScript, PDF engine, worker and sample; it needs no companion files. It is generated and ignored by Git. The tracked `standalone/` HTML is a prebuilt snapshot; the workflow always rebuilds both hosted and offline versions from the source modules. Download the latest offline utility from the live site's Downloads & guide page.
 
 **One-time owner setup:** in [Settings → Pages](https://github.com/DisneyMax/pattern-laser/settings/pages), choose **GitHub Actions** under Build and deployment → Source. The connected integration and workflow token cannot change this setting (GitHub returns HTTP 403). Then rerun the workflow from its Actions page. Deployment checks this setting to prevent the legacy branch publisher from bypassing the tests. The private ChatGPT Site remains separate and requires its own deployment.
