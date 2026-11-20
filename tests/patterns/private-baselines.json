@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "note": "Aggregate expectations only; PDFs and derived geometry are not included. These are automated baselines, not claims of per-file xTool or machine validation.",
+  "cleanup": {
+    "dedupe": true,
+    "join": true,
+    "tolerance": 0.03
+  },
+  "files": [
+    {
+      "id": "luggage",
+      "fileName": "LuggageTagPrintInstructions.pdf",
+      "sha256": "42eeeec150204ed1e9c7e123cc012e54b21f0266792e6ad738f48e63d57982fe",
+      "pages": [
+        {
+          "number": 1,
+          "sizeMm": [
+            215.9,
+            279.4
+          ],
+          "counts": {
+            "cut": 0,
+            "holes": 0,
+            "hardware": 0,
+            "inner": 0,
+            "score": 0,
+            "unassigned": 5,
+            "reference": 2
+          },
+          "dimensionPaths": 0,
+          "images": 1,
+          "exportReady": false,
+          "cutSizesMm": []
+        },
+        {
+          "number": 2,
+          "sizeMm": [
+            279.4,
+            215.9
+          ],
+          "counts": {
+            "cut": 4,
+            "holes": 110,
+            "hardware": 7,
+            "inner": 3,
+            "score": 0,
+            "unassigned": 1,
+            "reference": 1
+          },
+          "dimensionPaths": 0,
+          "images": 0,
+          "exportReady": false,
+          "cutSizesMm": [
+            [
+              25.4,
+              25.4
+            ],
+            [
+              63.5,
+              101.6
+            ],
+            [
+              63.5,
+              101.6
+            ],
+            [
+              266.7677,
+              12.7
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pick-case",
+      "fileName": "Pick Case Pattern.pdf",
+      "sha256": "cc0461977caf2bf212997e4ae4628a1fb2b57e2d4561be584b500e34303f6a20",
+      "pages": [
+        {
+          "number": 1,
+          "sizeMm": [
+            210.0016,
+            297.0001
+          ],
+          "counts": {
+            "cut": 4,
+            "holes": 0,
+            "hardware": 4,
+            "inner": 0,
+            "score": 0,
+            "unassigned": 37,
+            "reference": 50
+          },
+          "dimensionPaths": 0,
+          "images": 2,
+          "exportReady": false,
+          "cutSizesMm": [
+            [
+              35.687,
+              33.3163
+            ],
+            [
+              35.687,
+              33.3163
+            ],
+            [
+              35.8987,
+              40.5553
+            ],
+            [
+              35.8987,
+              40.5977
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hahns",
+      "fileName": "[HahnsAtelier] 10_Bi-fold wallet.pdf",
+      "sha256": "07ad02b7505a589e05271ae9175c54d12038d7d44d032740de3126e5b5fb5395",
+      "pages": [
+        {
+          "number": 1,
+          "sizeMm": [
+            297.0107,
+            419.9467
+          ],
+          "counts": {
+            "cut": 0,
+            "holes": 0,
+            "hardware": 0,
+            "inner": 0,
+            "score": 0,
+            "unassigned": 0,
+            "reference": 0
+          },
+          "dimensionPaths": 0,
+          "images": 10,
+          "exportReady": false,
+          "cutSizesMm": []
+        }
+      ]
+    },
+    {
+      "id": "moneyclip",
+      "fileName": "MONEYCLIP WALLET.pdf",
+      "sha256": "88ed40cb0277956295a5240c6a38691f2edb7bf27caaf91603f90f28615e9653",
+      "pages": [
+        {
+          "number": 1,
+          "sizeMm": [
+            297.0389,
+            209.9028
+          ],
+          "counts": {
+            "cut": 3,
+            "holes": 354,
+            "hardware": 0,
+            "inner": 0,
+            "score": 0,
+            "unassigned": 8,
+            "reference": 25
+          },
+          "dimensionPaths": 25,
+          "images": 0,
+          "exportReady": false,
+          "cutSizesMm": [
+            [
+              97.9911,
+              81.9997
+            ],
+            [
+              98.0017,
+              81.9891
+            ],
+            [
+              229.997,
+              81.9997
+            ]
+          ]
+        },
+        {
+          "number": 2,
+          "sizeMm": [
+            297.0389,
+            209.9028
+          ],
+          "counts": {
+            "cut": 5,
+            "holes": 164,
+            "hardware": 0,
+            "inner": 0,
+            "score": 0,
+            "unassigned": 10,
+            "reference": 35
+          },
+          "dimensionPaths": 35,
+          "images": 0,
+          "exportReady": false,
+          "cutSizesMm": [
+            [
+              62.2617,
+              30.5435
+            ],
+            [
+              92.9957,
+              59.0021
+            ],
+            [
+              92.9957,
+              59.0127
+            ],
+            [
+              97.9911,
+              59.0021
+            ],
+            [
+              97.9911,
+              59.0021
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "makesupply-letter",
+      "fileName": "makesupply-keychain-snap-wallet-LETTER.pdf",
+      "sha256": "4fa3eea7e581c528be7174d409f06977ba965aea803223938a29a62e06335a2e",
+      "pages": [
+        {
+          "number": 1,
+          "sizeMm": [
+            215.9,
+            279.4
+          ],
+          "counts": {
+            "cut": 3,
+            "holes": 96,
+            "hardware": 2,
+            "inner": 0,
+            "score": 0,
+            "unassigned": 0,
+            "reference": 90
+          },
+          "dimensionPaths": 0,
+          "images": 0,
+          "exportReady": true,
+          "cutSizesMm": [
+            [
+              39.5111,
+              15.875
+            ],
+            [
+              69.85,
+              107.95
+            ],
+            [
+              107.95,
+              128.5065
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "makesupply-a4",
+      "fileName": "makesupply-keychain-snap-wallet-A4.pdf",
+      "sha256": "b1440da113691f232cb7c6158e9e30fa92632c237a6e0cf1bc17240e608eb58c",
+      "pages": [
+        {
+          "number": 1,
+          "sizeMm": [
+            210.0001,
+            297.0001
+          ],
+          "counts": {
+            "cut": 3,
+            "holes": 96,
+            "hardware": 2,
+            "inner": 0,
+            "score": 0,
+            "unassigned": 0,
+            "reference": 90
+          },
+          "dimensionPaths": 0,
+          "images": 0,
+          "exportReady": true,
+          "cutSizesMm": [
+            [
+              39.5111,
+              15.875
+            ],
+            [
+              69.85,
+              107.95
+            ],
+            [
+              107.95,
+              128.5065
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

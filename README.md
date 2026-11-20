@@ -39,7 +39,7 @@ The source modules, `index.template.html`, `styles.css`, `theme-init.js`, build 
 
 ## Validation and limits
 
-The current default suite contains 134 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
+The current default suite contains 149 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
 
 Raster tracing approximates the printed design. Review the overlay, operation assignments and physical scale before exporting. SVG colours do not include laser power, speed or processing assignments. This version does not assemble tiled sheets, nest pieces or calculate kerf.
 
@@ -73,7 +73,7 @@ npm run test:ui
 
 ## Playwright UI regression tests
 
-The 27 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
+The 31 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
 
 ```sh
 npm ci
@@ -97,3 +97,11 @@ For an eligible open path, **Preview suggested repair** shows a dashed blue cont
 Inspect the overlay and resulting operation, then choose **Apply repair**, **Cancel preview**, or Escape. Applying records one Undo step and invalidates raster overlay/scale acknowledgement. Changing geometry, tolerance, view or editing tools discards the pending preview. Stale previews cannot be applied.
 
 Branches, clipped/unsupported paths, ambiguous connections, large gaps and closed unassigned features remain manual decisions. No paths are automatically excluded. Repairs preserve unrelated assignments: after joining a new outer contour, check the operations of its internal features. Preview does not validate arbitrary self-intersections or guarantee cutting suitability.
+
+## Pattern corpus regression coverage
+
+`npm run test:patterns` runs 15 end-to-end PDF pipeline checks using original, programmatically generated artwork. These checks are also part of `npm test` and public CI. They cover A4/Letter equivalence, filled stitch dots, fasteners, internal cuts, a 25.4 mm calibration square, hole sizing, duplicate painting, nested transforms, page rotation, CropBox origins, rectangular clipping, small gaps/branches, and multi-panel raster tracing with light watermark suppression and optional round marks. Four additional browser scenarios exercise these PDFs through import, page selection, tracing, review and export.
+
+Vector dimensions have a 0.002 mm tolerance; raster dimensions/mark positions use a 0.3 mm tolerance. At lower raster resolution, mark diameters and inferred operation roles can vary: the low-resolution test requires preservation of all positions rather than assuming every round mark is stitching. The 300 DPI baseline retains all 12 stitch suggestions.
+
+The optional supplied-PDF corpus is separate. See [tests/patterns/README.md](tests/patterns/README.md) for local setup and provenance. Only hashes, aggregate counts and measurements are committed. Additional third-party PDFs and derived artwork are not included in public CI, the Pages build or test artifacts. No individual supplied file is represented as machine-tested merely because its automated baseline passes.
