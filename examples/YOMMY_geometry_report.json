@@ -1,0 +1,104 @@
+{
+  "source": "CARD HOLDER YOMMY.pdf",
+  "sourceSHA256": "0f9b0c8b28eb01fe9b43ffdbf1a9426ed39e48dadebf611a3d791d9caa4cdf46",
+  "pageMm": {
+    "width": 215.89999999999998,
+    "height": 279.4
+  },
+  "sourceSubpaths": 579,
+  "cleanup": {
+    "inputPaths": 579,
+    "duplicateSegments": 410,
+    "duplicatePaths": 110,
+    "joins": 16,
+    "maxGap": 0.08240776062010013
+  },
+  "reviewedEdits": {
+    "excludedSpurs": [
+      "p342r0",
+      "p344r0"
+    ],
+    "joinToleranceMm": 0.1,
+    "largestGapMm": 0.08240776062010013,
+    "holeResizing": false
+  },
+  "result": {
+    "outerContours": 5,
+    "internalCuts": 1,
+    "stitchHoles": 438,
+    "unresolved": 0,
+    "holeDiameterMmRange": [
+      0.9999820285373175,
+      1.0002901797567159
+    ]
+  },
+  "pieces": [
+    {
+      "file": "YOMMY_piece_1.svg",
+      "boundsMm": {
+        "x": 127.791919793023,
+        "y": 25.552510070800793,
+        "w": 77.49998524983724,
+        "h": 105.00016928778751
+      },
+      "holes": 124,
+      "internalCuts": 0
+    },
+    {
+      "file": "YOMMY_piece_2.svg",
+      "boundsMm": {
+        "x": 15.815204715728758,
+        "y": 159.59489890204534,
+        "w": 105.00021369722154,
+        "h": 77.49999063279893
+      },
+      "holes": 97,
+      "internalCuts": 0
+    },
+    {
+      "file": "YOMMY_piece_3.svg",
+      "boundsMm": {
+        "x": 68.31545817528243,
+        "y": 25.552510070800793,
+        "w": 55.53924500736187,
+        "h": 104.99999703301322
+      },
+      "holes": 35,
+      "internalCuts": 0
+    },
+    {
+      "file": "YOMMY_piece_4.svg",
+      "boundsMm": {
+        "x": 10.23615278903349,
+        "y": 25.55272538926866,
+        "w": 55.53926280104083,
+        "h": 104.99995396931965
+      },
+      "holes": 87,
+      "internalCuts": 0
+    },
+    {
+      "file": "YOMMY_piece_5.svg",
+      "boundsMm": {
+        "x": 139.76277131445613,
+        "y": 146.85341779920788,
+        "w": 65.5291337284041,
+        "h": 105.00017736223009
+      },
+      "holes": 95,
+      "internalCuts": 1
+    }
+  ],
+  "validation": {
+    "coreChecksPassed": 15,
+    "svgRender": "All seven SVG files parsed and rendered; physical page dimensions verified through SVG-to-PDF conversion.",
+    "browserQA": "Not run: managed browser tool unavailable",
+    "xtoolImport": "Not run: requires xTool Studio"
+  },
+  "warnings": [
+    "Reviewed sample: two short construction spurs (p342r0 and p344r0) were manually excluded.",
+    "The join tolerance was increased from the default 0.03 mm to 0.10 mm. Largest joined gap: 0.082408 mm.",
+    "The translucent watermark, filled artwork and tiny fragments are reference-only.",
+    "This SVG has not been imported into xTool Studio in this environment. Verify dimensions and processing settings there."
+  ]
+}

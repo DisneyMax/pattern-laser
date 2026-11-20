@@ -1,0 +1,21 @@
+{
+  "version": "0.4.0",
+  "feature": "Left-button box selection for manual group editing",
+  "checks": {
+    "box_selection": 16,
+    "ui_controller": 9,
+    "appearance": 21
+  },
+  "behavior": [
+    "Whole visible paths fully enclosed",
+    "Shift-drag adds; Shift-click toggles",
+    "Escape cancels active drag or clears completed selection",
+    "Bulk assignment, exclusion and Undo",
+    "Join preserves selected closed geometry"
+  ],
+  "limitations": [
+    "Interactive browser testing unavailable",
+    "xTool Studio import unverified",
+    "Selection does not split partially enclosed geometry"
+  ]
+}

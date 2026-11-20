@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import {extract,prepare,selectedBounds,findPieces,exportSVG,MM,circleInfo} from './geometry.mjs';
+const pdfjs=await import('/opt/codex/runtimes/codex-primary-runtime/dependencies/node/node_modules/pdfjs-dist/legacy/build/pdf.mjs');
+const doc=await pdfjs.getDocument({data:new Uint8Array(fs.readFileSync('/workspace/attachments/2faae17e-80ca-4a57-9c30-1dd62319237e/CARD HOLDER YOMMY.pdf')),isEvalSupported:false}).promise;
+const p=await doc.getPage(1),vp=p.getViewport({scale:1});
+const result=extract(await p.getOperatorList(),vp,pdfjs.OPS);
+const cleaned=prepare(result.objects);
+console.log('Extract',result.objects.length,result.warnings);
+console.log('Stats',cleaned.stats);
+console.log('Layers',Object.fromEntries([...new Set(cleaned.objects.map(o=>o.layer))].map(k=>[k,cleaned.objects.filter(o=>o.layer===k).length])));
+for(const o of cleaned.objects.filter(o=>o.layer!=='holes'))console.log(o.id,o.layer,o.closed,o.bbox,o.cmds.length,o.alpha,o.reason);
+console.log('Pieces',findPieces(cleaned.objects).map(p=>({name:p.name,outer:p.outerId,paths:p.objects.length,bounds:selectedBounds(p.objects)})));
+fs.writeFileSync('/workspace/work/sample-data.json',JSON.stringify({page:{width:vp.width*MM,height:vp.height*MM},...result}));
+fs.writeFileSync('/workspace/work/sample-cleaned.json',JSON.stringify(cleaned));
+fs.writeFileSync('/workspace/work/sample.svg',exportSVG(cleaned.objects,{width:vp.width*MM,height:vp.height*MM}));
+await doc.destroy();

@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import {prepare,exportSVG,findPieces,selectedBounds,calibrationSVG,circleInfo} from './geometry.mjs';
+const source=JSON.parse(fs.readFileSync('/workspace/work/sample-data.json'));
+const pass1=prepare(source.objects,{tolerance:.1});
+for(const o of pass1.objects)if(['p342r0','p344r0'].includes(o.id)){o.layer=o.manualLayer='reference';o.reason='Reviewed sample: short construction spur excluded';}
+const pass2=prepare(pass1.objects,{dedupe:false,join:true,tolerance:.1});
+const stats={...pass1.stats,joins:pass1.stats.joins+pass2.stats.joins,maxGap:Math.max(pass1.stats.maxGap,pass2.stats.maxGap)};
+const out='/workspace/work/deliverables/';
+const options={...source.page,scale:1,title:'CARD HOLDER YOMMY · reviewed vector conversion'};
+fs.writeFileSync(out+'YOMMY_xtool_reviewed.svg',exportSVG(pass2.objects,options));
+fs.writeFileSync(out+'100mm_calibration.svg',calibrationSVG());
+const warnings=['Reviewed sample: two short construction spurs (p342r0 and p344r0) were manually excluded.','The join tolerance was increased from the default 0.03 mm to 0.10 mm. Largest joined gap: '+stats.maxGap.toFixed(6)+' mm.','The translucent watermark, filled artwork and tiny fragments are reference-only.','This SVG has not been imported into xTool Studio in this environment. Verify dimensions and processing settings there.'];
+const project={format:'pattern-laser-project',version:1,fileName:'CARD HOLDER YOMMY.pdf',pageInfo:{...source.page,number:1},raw:source.objects,objects:pass2.objects,stats,warnings,referenceImage:'data:image/png;base64,'+fs.readFileSync('/workspace/work/pattern.png').toString('base64'),scale:1,settings:{dedupe:true,join:true,tolerance:.1},exportLayers:['cut','holes','inner','score'],resizeHoles:false,holeDiameter:1};
+fs.writeFileSync(out+'YOMMY_reviewed.pattern.json',JSON.stringify(project));
+fs.mkdirSync(out+'YOMMY_individual_pieces',{recursive:true});
+const pieces=findPieces(pass2.objects);
+for(const [i,p]of pieces.entries())fs.writeFileSync(out+`YOMMY_individual_pieces/YOMMY_piece_${i+1}.svg`,exportSVG(p.objects,{...options,crop:true,title:`YOMMY piece ${i+1}`}));
+const report={source:'CARD HOLDER YOMMY.pdf',sourceSHA256:crypto.createHash('sha256').update(fs.readFileSync('/workspace/attachments/2faae17e-80ca-4a57-9c30-1dd62319237e/CARD HOLDER YOMMY.pdf')).digest('hex'),pageMm:source.page,sourceSubpaths:source.objects.length,cleanup:stats,reviewedEdits:{excludedSpurs:['p342r0','p344r0'],joinToleranceMm:.1,largestGapMm:stats.maxGap,holeResizing:false},result:{outerContours:pass2.objects.filter(o=>o.layer==='cut').length,internalCuts:pass2.objects.filter(o=>o.layer==='inner').length,stitchHoles:pass2.objects.filter(o=>o.layer==='holes').length,unresolved:pass2.objects.filter(o=>o.layer==='unassigned').length,holeDiameterMmRange:[Math.min(...pass2.objects.filter(o=>o.layer==='holes').map(o=>circleInfo(o).r*2)),Math.max(...pass2.objects.filter(o=>o.layer==='holes').map(o=>circleInfo(o).r*2))]},pieces:pieces.map((p,i)=>({file:`YOMMY_piece_${i+1}.svg`,boundsMm:selectedBounds(p.objects),holes:p.objects.filter(o=>o.layer==='holes').length,internalCuts:p.objects.filter(o=>o.layer==='inner').length})),validation:{coreChecksPassed:15,svgRender:'See SVG inspection results',browserQA:'Not run: managed browser tool unavailable',xtoolImport:'Not run: requires xTool Studio'},warnings};
+fs.writeFileSync(out+'YOMMY_geometry_report.json',JSON.stringify(report,null,2));
+console.log(report.result);
