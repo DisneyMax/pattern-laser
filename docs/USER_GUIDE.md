@@ -88,6 +88,12 @@ For guided review, use **Next item** or **Previous item** under Review paths. Ea
 
 Suggestions bridge gaps of at most 0.2 mm without changing the global join tolerance. Ambiguous branches, clipped paths, large gaps and uncertain operations stay manual. Unrelated assignments are preserved: inspect internal-cut roles after joining a new outer boundary. The preview does not guarantee a valid or self-intersection-free cutting contour.
 
+Use **Find round-mark groups** to suggest straight rows of at least three round marks with similar source diameters and regular spacing inside a closed outer cut boundary. Choose a group, then explicitly select **Stitch holes** or **Fastener / round marks** and click **Preview group**. Check every highlighted mark against the original before applying: a regular row does not establish its purpose.
+
+**Apply group** changes only the operation of the editable marks and adds one Undo step. Existing manual assignments stay unchanged, including marks used as row anchors. Source commands, sizes and positions are preserved. Export and project saving wait until you apply or cancel the preview; applying requires fresh raster review acknowledgement. The existing optional stitch-hole resize setting still applies to exported stitching and is shown in the group preview. Find groups again after applying to review remaining rows.
+
+Curved rows, irregular spacing, isolated marks, clipped features, rows outside closed cut boundaries and more than 1,500 candidate marks need manual review or box selection. Group suggestions are temporary; applied operations are retained in saved projects.
+
 For geometry repairs:
 
 - **Join selected paths** joins selected open paths when their endpoints match unambiguously within the current tolerance. Selected closed paths keep their geometry and assignments. Review the joined result and assign its operation.
