@@ -82,6 +82,12 @@ The operation groups are:
 - **Reference:** artwork excluded from SVG export.
 - **Needs review:** unresolved geometry that blocks export.
 
+For guided review, use **Next item** or **Previous item** under Review paths. Each item is selected, revealed and fitted into the preview. Explanations distinguish small gaps, branching endpoints, clipping and features needing operation assignment; gap measurements use source millimetres.
+
+**Preview suggested repair** shows a dashed blue closing/joining proposal over the faded original paths. Inspect it, then choose **Apply repair**, **Cancel preview**, or Escape. Previewing changes no geometry. Applying adds one Undo step and resets raster review acknowledgement. Export and project saving wait until you apply or cancel. Tolerance, view or editing changes discard the pending preview.
+
+Suggestions bridge gaps of at most 0.2 mm without changing the global join tolerance. Ambiguous branches, clipped paths, large gaps and uncertain operations stay manual. Unrelated assignments are preserved: inspect internal-cut roles after joining a new outer boundary. The preview does not guarantee a valid or self-intersection-free cutting contour.
+
 For geometry repairs:
 
 - **Join selected paths** joins selected open paths when their endpoints match unambiguously within the current tolerance. Selected closed paths keep their geometry and assignments. Review the joined result and assign its operation.

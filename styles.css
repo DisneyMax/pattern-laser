@@ -9,3 +9,5 @@ button{border-color:var(--control-border)}button:hover{background:var(--hover)}b
 
 .hover-hints-pref{display:inline-flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--control-border);border-radius:7px;font-size:11px;color:var(--muted);white-space:nowrap}.hover-hints-pref input{margin:0}.help-hint-note{font-size:11px;color:var(--muted);line-height:1.5}@media(pointer:coarse){.help-trigger{width:30px;height:30px;flex-basis:30px;font-size:14px}}
 .toolbar>.row{flex-wrap:wrap}.stage.box-select-ready{cursor:crosshair;user-select:none}.marquee-box{fill:#2569a622;stroke:#2569a6;stroke-width:1.5px;stroke-dasharray:5 3;vector-effect:non-scaling-stroke;pointer-events:none}.geom.marquee-hit{stroke:#2569a6!important;stroke-width:.45!important}
+
+.repair-note{padding:10px;border:1px solid var(--focus);border-radius:7px;background:var(--mint);font-size:12px;line-height:1.6}.repair-before{opacity:.25}.repair-preview{fill:none;stroke:#168bd2;stroke-width:2px;stroke-dasharray:6 3;vector-effect:non-scaling-stroke;pointer-events:none}

@@ -39,7 +39,7 @@ The source modules, `index.template.html`, `styles.css`, `theme-init.js`, build 
 
 ## Validation and limits
 
-The current default suite contains 117 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
+The current default suite contains 134 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
 
 Raster tracing approximates the printed design. Review the overlay, operation assignments and physical scale before exporting. SVG colours do not include laser power, speed or processing assignments. This version does not assemble tiled sheets, nest pieces or calculate kerf.
 
@@ -73,7 +73,7 @@ npm run test:ui
 
 ## Playwright UI regression tests
 
-The 22 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
+The 27 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
 
 ```sh
 npm ci
@@ -87,3 +87,13 @@ The test runner starts its own local static server and uses isolated browser con
 CI installs Chromium and its operating-system dependencies, runs all UI tests, and retains reports, downloads and failure screenshots/traces for 14 days. A UI failure blocks Pages deployment. Pull requests run the same checks without publishing. One retry is allowed in CI to capture intermittent failures, but flaky tests still fail the job.
 
 To use an already-installed Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. Managed environments that explicitly block `file://` navigation can set `PLAYWRIGHT_SKIP_FILE_URL=1` locally; this skips only the direct-file case. The network-disconnected standalone test still runs. CI does not set that flag and must pass the direct-file test as well.
+
+## Guided path review
+
+Use **Next item** or **Previous item** in Review paths to select, reveal and fit each unresolved or possibly excluded path. The explanation reports endpoint gaps and the current join tolerance in source millimetres, or identifies clipping, branching and operation-assignment issues.
+
+For an eligible open path, **Preview suggested repair** shows a dashed blue contour over faded originals. Suggestions close a small gap or join a uniquely connected component into one closed contour, with a maximum bridged gap of 0.2 mm. They do not change geometry, consume Undo history, or alter the global cleanup tolerance. Export and project saving pause while a preview is pending.
+
+Inspect the overlay and resulting operation, then choose **Apply repair**, **Cancel preview**, or Escape. Applying records one Undo step and invalidates raster overlay/scale acknowledgement. Changing geometry, tolerance, view or editing tools discards the pending preview. Stale previews cannot be applied.
+
+Branches, clipped/unsupported paths, ambiguous connections, large gaps and closed unassigned features remain manual decisions. No paths are automatically excluded. Repairs preserve unrelated assignments: after joining a new outer contour, check the operations of its internal features. Preview does not validate arbitrary self-intersections or guarantee cutting suitability.
