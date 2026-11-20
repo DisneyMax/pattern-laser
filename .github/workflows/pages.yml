@@ -58,14 +58,15 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Configure Pages to deploy only through Actions
+      - name: Verify Pages uses GitHub Actions
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           current_source=$(gh api "repos/${GH_REPO}/pages" --jq .build_type)
           if [ "$current_source" != "workflow" ]; then
-            gh api --method PUT "repos/${GH_REPO}/pages" -f build_type=workflow --silent
+            echo "::error::Repository owner: open Settings > Pages > Build and deployment, select GitHub Actions as Source, then rerun this workflow."
+            exit 1
           fi
       - name: Deploy tested artifact
         id: deployment

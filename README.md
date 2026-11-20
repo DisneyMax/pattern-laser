@@ -66,4 +66,4 @@ python3 verify-pages.py
 
 `_site/` contains the hosted app, a freshly built standalone HTML download, guides and samples. It is generated and ignored by Git. The root `index.html` and `standalone/` tracked HTML files are earlier snapshots; the workflow always rebuilds from the source modules. Download the latest offline utility from the live site's Downloads & guide page.
 
-GitHub Pages is configured to use **GitHub Actions** as its source. The private ChatGPT Site remains separate and requires its own deployment.
+**One-time owner setup:** in [Settings → Pages](https://github.com/DisneyMax/pattern-laser/settings/pages), choose **GitHub Actions** under Build and deployment → Source. The connected integration and workflow token cannot change this setting (GitHub returns HTTP 403). Then rerun the workflow from its Actions page. Deployment checks this setting to prevent the legacy branch publisher from bypassing the tests. The private ChatGPT Site remains separate and requires its own deployment.
