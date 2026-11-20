@@ -6,7 +6,7 @@ The utility supports original vector extraction, selected-area raster centreline
 
 ## Use the tool
 
-Open [the private hosted utility](https://pattern-laser.juicyweaver4.chatgpt.site/) while signed in with the Site owner account, or download and open [`standalone/Pattern_Laser_Utility.html`](standalone/Pattern_Laser_Utility.html) in recent desktop Chrome or Edge. The standalone HTML embeds PDF.js and the supplied YOMMY sample; it needs no server or CDN.
+Open [the public GitHub Pages utility](https://disneymax.github.io/pattern-laser/), use [the private ChatGPT Site](https://pattern-laser.juicyweaver4.chatgpt.site/) with the Site owner account, or download and open [`standalone/Pattern_Laser_Utility.html`](standalone/Pattern_Laser_Utility.html) in recent desktop Chrome or Edge. The standalone HTML embeds PDF.js and the supplied YOMMY sample; it needs no server or CDN.
 
 Follow the [step-by-step user guide](docs/USER_GUIDE.md), or download the [PDF guide](docs/Pattern_Laser_User_Guide.pdf).
 
@@ -47,4 +47,16 @@ Raster tracing approximates the printed design. Review the overlay, operation as
 
 PDF.js is pinned to 5.6.205 and licensed under Apache 2.0; its license is included in [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/) and embedded in the standalone HTML. Sample patterns retain their original rights. No license for the original application or pattern artwork is granted by this repository.
 
-This GitHub repository is separate from the managed Sites source repository. Pushing here does not automatically deploy the hosted Site.
+## Publish updates to GitHub Pages
+
+GitHub Pages serves the repository root on `main`. Before publishing app changes, run:
+
+```sh
+npm ci
+npm test
+npm run build:pages
+```
+
+Commit and push the updated source, `standalone/Pattern_Laser_Utility.html` and root `index.html` to `main`. GitHub then rebuilds Pages. The `.nojekyll` file serves the static files directly. The downloads page, guides and reviewed examples are also available on Pages.
+
+This GitHub repository is separate from the managed Sites source repository. Pushing here updates GitHub Pages after its build completes; the private ChatGPT Site requires a separate deployment.
