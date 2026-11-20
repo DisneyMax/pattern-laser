@@ -5,3 +5,5 @@ dist/
 .env.*
 *.log
 _site/
+playwright-report/
+test-results/
