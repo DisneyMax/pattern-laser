@@ -7,3 +7,4 @@ dist/
 _site/
 playwright-report/
 test-results/
+.private-patterns/
