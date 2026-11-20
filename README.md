@@ -39,7 +39,7 @@ The source modules, HTML template, build script and tests live at the repository
 
 ## Validation and limits
 
-The current default suite contains 108 automated geometry, raster, download, UI-controller, appearance and box-selection checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles; interactive browser testing, xTool Studio import and machine processing remain unverified.
+The current default suite contains 108 automated geometry, raster, download, UI-controller, appearance and box-selection checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; interactive browser automation and machine processing remain unverified.
 
 Raster tracing approximates the printed design. Review the overlay, operation assignments and physical scale before exporting. SVG colours do not include laser power, speed or processing assignments. This version does not assemble tiled sheets, nest pieces or calculate kerf.
 
@@ -47,16 +47,23 @@ Raster tracing approximates the printed design. Review the overlay, operation as
 
 PDF.js is pinned to 5.6.205 and licensed under Apache 2.0; its license is included in [`THIRD_PARTY_LICENSES/`](THIRD_PARTY_LICENSES/) and embedded in the standalone HTML. Sample patterns retain their original rights. No license for the original application or pattern artwork is granted by this repository.
 
-## Publish updates to GitHub Pages
+## Automated tests and GitHub Pages
 
-GitHub Pages serves the repository root on `main`. Before publishing app changes, run:
+The [Test, build and deploy Pages workflow](https://github.com/DisneyMax/pattern-laser/actions/workflows/pages.yml) runs on pushes and pull requests targeting `main`, and can also be started manually.
+
+- Every run installs locked dependencies on Node.js 24 and Python 3.12, runs the regression suite, builds the app, and checks generated JavaScript and local download/guide links.
+- Successful pushes to `main` deploy the tested `_site/` artifact to GitHub Pages. Pull requests validate the build without publishing.
+- Failed tests or builds stop deployment. The previously deployed site stays available.
+
+Commit and push source changes to `main`; rebuilding tracked HTML by hand is no longer required. For local verification:
 
 ```sh
 npm ci
 npm test
 npm run build:pages
+python3 verify-pages.py
 ```
 
-Commit and push the updated source, `standalone/Pattern_Laser_Utility.html` and root `index.html` to `main`. GitHub then rebuilds Pages. The `.nojekyll` file serves the static files directly. The downloads page, guides and reviewed examples are also available on Pages.
+`_site/` contains the hosted app, a freshly built standalone HTML download, guides and samples. It is generated and ignored by Git. The root `index.html` and `standalone/` tracked HTML files are earlier snapshots; the workflow always rebuilds from the source modules. Download the latest offline utility from the live site's Downloads & guide page.
 
-This GitHub repository is separate from the managed Sites source repository. Pushing here updates GitHub Pages after its build completes; the private ChatGPT Site requires a separate deployment.
+GitHub Pages is configured to use **GitHub Actions** as its source. The private ChatGPT Site remains separate and requires its own deployment.
