@@ -10,6 +10,12 @@ export function createHelpButton(text,name='this control'){
 }
 export function makeHelpRow(label,text,name){const row=document.createElement('div');row.className='help-check-row';setHelp(label,text);row.append(label,createHelpButton(text,name));return row;}
 export const CONTROL_HELP={
+ reviewPrev:'Select and zoom to the previous unresolved or possibly excluded path. Navigation wraps around the review list without changing geometry.',
+ reviewNext:'Select and zoom to the next unresolved or possibly excluded path. Assign or exclude an item after inspecting its source.',
+ previewRepair:'Show a proposed closing segment or unambiguous join without changing geometry. Suggestions bridge gaps up to 0.2 mm. Branches, clipped paths and uncertain features need manual review.',
+ applyRepair:'Apply the displayed repair to the highlighted paths and assign the resulting closed contour. Global cleanup tolerance and unrelated assignments stay unchanged. Undo can restore the edit.',
+ cancelRepair:'Discard the repair preview and keep the original geometry. Escape also cancels a pending preview.',
+
  hoverHints:'Show short hints after an 800 ms mouse hover. Turn this off for quieter navigation. Click ? or press F1 on a control for full help, even with hover hints off. Your choice is saved in this browser.',
  themeToggle:'Switch the interface between light and dark. Your choice is saved in this browser. PDF paper and SVG layer colours stay consistent.',
  undo:'Undo the latest geometry edit, tracing, calibration or engine change in this session. Up to 25 steps are retained. Shortcut: Ctrl+Z or ⌘Z.',
