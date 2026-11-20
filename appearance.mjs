@@ -10,6 +10,13 @@ export function createHelpButton(text,name='this control'){
 }
 export function makeHelpRow(label,text,name){const row=document.createElement('div');row.className='help-check-row';setHelp(label,text);row.append(label,createHelpButton(text,name));return row;}
 export const CONTROL_HELP={
+ findMarkGroups:'Find proposed rows of round marks with similar source sizes and regular spacing inside the same closed outer contour. Geometry stays unchanged. Existing manual assignments are protected.',
+ markGroupSelect:'Choose a proposed row to inspect. Groups describe geometry, not confirmed stitching; choose the intended operation and preview all highlighted marks.',
+ markGroupRole:'Choose Stitch holes or Fastener / round marks for this group. Nothing changes until Apply group. Global stitch-hole resizing applies after assigning Stitch holes.',
+ previewMarkGroup:'Highlight the marks that would receive the chosen operation. Their source paths and sizes stay unchanged; current hole-resizing settings are shown in the preview.',
+ applyMarkGroup:'Apply the previewed operation to editable group members only. Existing manual assignments stay unchanged. This creates one Undo step and resets raster review acknowledgement.',
+ cancelMarkGroup:'Discard the group preview without changing geometry or operations. Escape also cancels a pending preview.',
+
  reviewPrev:'Select and zoom to the previous unresolved or possibly excluded path. Navigation wraps around the review list without changing geometry.',
  reviewNext:'Select and zoom to the next unresolved or possibly excluded path. Assign or exclude an item after inspecting its source.',
  previewRepair:'Show a proposed closing segment or unambiguous join without changing geometry. Suggestions bridge gaps up to 0.2 mm. Branches, clipped paths and uncertain features need manual review.',

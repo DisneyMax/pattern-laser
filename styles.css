@@ -11,3 +11,5 @@ button{border-color:var(--control-border)}button:hover{background:var(--hover)}b
 .toolbar>.row{flex-wrap:wrap}.stage.box-select-ready{cursor:crosshair;user-select:none}.marquee-box{fill:#2569a622;stroke:#2569a6;stroke-width:1.5px;stroke-dasharray:5 3;vector-effect:non-scaling-stroke;pointer-events:none}.geom.marquee-hit{stroke:#2569a6!important;stroke-width:.45!important}
 
 .repair-note{padding:10px;border:1px solid var(--focus);border-radius:7px;background:var(--mint);font-size:12px;line-height:1.6}.repair-before{opacity:.25}.repair-preview{fill:none;stroke:#168bd2;stroke-width:2px;stroke-dasharray:6 3;vector-effect:non-scaling-stroke;pointer-events:none}
+
+.mark-group-preview{fill:none;stroke:#168bd2;stroke-width:2px;stroke-dasharray:3 2;vector-effect:non-scaling-stroke;pointer-events:none}
