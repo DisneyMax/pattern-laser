@@ -1,16 +1,16 @@
 # Pattern / laser — step-by-step user guide
 
-For version 0.4.0 · Updated November 16, 2026
+For version 0.4.0 · Updated November 20, 2026
 
 Convert leather-pattern PDFs into SVG geometry for xTool Studio. Start with the practice project below, then follow the numbered workflow for your own PDF. Files opened in the utility are processed in your browser. The offline HTML contains its PDF engine and the supplied YOMMY sample.
 
 ## Practice with the reviewed sample
 
-1. Open the utility and follow **Downloads & guide**. Download **Reviewed project** (`YOMMY_reviewed.pattern.json`).
-2. Return to the utility, click **Open project**, and choose that file.
+1. Open the utility and click **Load reviewed YOMMY sample**, or **Explore reviewed sample** in the empty preview. The reviewed project loads directly, including in the offline HTML.
+2. Confirm that Export SVG is enabled and there are no unresolved paths. You can also download `YOMMY_reviewed.pattern.json` from Downloads & guide and open it with Open project.
 3. Click **Overlay**. You should see five outer contours, 438 stitch-hole contours and one internal cutout. Turn on Reference under Preview layers to inspect excluded artwork.
 4. Click **Select**, then left-drag a small box around several stitch holes. Their selection highlights and the inspector count should change. Press Escape to clear the selection.
-5. Continue with steps 6–9 below to check scale and export. Use this reviewed project for practice: **Try the supplied YOMMY pattern** loads the original PDF with conservative defaults and still requires manual review.
+5. Continue with steps 6–9 below to check scale and export. Use **Open original PDF (needs review)** only for cleanup practice: it loads the original PDF with conservative defaults and seven paths to review. The main sample buttons load the reviewed corrections instead.
 
 ## 1. Open your PDF and choose a page
 

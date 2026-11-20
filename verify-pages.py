@@ -41,7 +41,7 @@ for path in root.rglob('*.html'):
             raise SystemExit(f'Missing or escaping link: {path}: {target}')
 
 manifest = json.loads((root / 'assets-manifest.json').read_text())
-assert set(manifest) == {'app', 'styles', 'theme', 'engine', 'worker', 'sample'}
+assert set(manifest) == {'app', 'styles', 'theme', 'engine', 'worker', 'sample', 'reviewedSample'}
 for key, name in manifest.items():
     path = root / name
     digest = hashlib.sha256(path.read_bytes()).hexdigest()[:16]
@@ -51,6 +51,7 @@ for key, name in manifest.items():
 assert (root / manifest['styles']).read_bytes() == (source / 'styles.css').read_bytes()
 assert (root / manifest['theme']).read_bytes() == (source / 'theme-init.js').read_bytes()
 assert (root / manifest['sample']).read_bytes() == (source / 'CARD HOLDER YOMMY.pdf').read_bytes()
+assert (root / manifest['reviewedSample']).read_bytes() == (source / 'examples/YOMMY_reviewed.pattern.json').read_bytes()
 for key, filename in [('engine', 'pdf.min.mjs'), ('worker', 'pdf.worker.min.mjs')]:
     assert (root / manifest[key]).read_bytes() == (source / 'node_modules/pdfjs-dist/legacy/build' / filename).read_bytes()
 hosted = (root / 'index.html').read_text()
@@ -61,8 +62,8 @@ for key in ('app', 'styles', 'theme'):
     assert manifest[key] in parser.targets, key
 assert hosted.index(manifest['theme']) < hosted.index(manifest['styles']), 'Theme must apply before CSS paints.'
 app = (root / manifest['app']).read_text()
-assert not any(name in app for name in ('const PDF_ENGINE=', 'const PDF_WORKER=', 'const SAMPLE_PDF='))
-for key in ('engine', 'worker', 'sample'):
+assert not any(name in app for name in ('const PDF_ENGINE=', 'const PDF_WORKER=', 'const SAMPLE_PDF=', 'const SAMPLE_PROJECT='))
+for key in ('engine', 'worker', 'sample', 'reviewedSample'):
     assert f'./{Path(manifest[key]).name}' in app, key
 
 html = (root / 'standalone/Pattern_Laser_Utility.html').read_text()

@@ -1,5 +1,7 @@
 # Pattern / laser — first working version
 
+**Current sample behaviour:** Load reviewed YOMMY sample and Explore reviewed sample now open the reviewed project directly, ready to export. Open original PDF (needs review) retains the original conservative workflow described in the historical notes below.
+
 For the step-by-step workflow, open `user-guide.html`, read `USER_GUIDE.md`, or use `Pattern_Laser_User_Guide.pdf`.
 
 Open `Pattern_Laser_Utility.html` in a recent desktop Chrome or Edge browser. It is a single offline HTML file: the PDF engine and supplied YOMMY test PDF are embedded. No server, account, CDN or file upload is needed. This version includes vector extraction and selected-area raster centreline tracing.

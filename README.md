@@ -12,9 +12,9 @@ Follow the [step-by-step user guide](docs/USER_GUIDE.md), or download the [PDF g
 
 ## Try the reviewed sample
 
-1. Open the utility and click **Open project**.
-2. Choose [`examples/YOMMY_reviewed.pattern.json`](examples/YOMMY_reviewed.pattern.json).
-3. Inspect **Overlay** and verify dimensions before export.
+1. Open the utility and click **Load reviewed YOMMY sample** (or **Explore reviewed sample** in the empty preview).
+2. The reviewed project loads with five outer contours, one internal cutout, 438 stitch holes and no unresolved paths. The project JSON remains available at [`examples/YOMMY_reviewed.pattern.json`](examples/YOMMY_reviewed.pattern.json) for manual import.
+3. Inspect **Overlay** and verify dimensions before export. **Open original PDF (needs review)** loads the unedited PDF with conservative 0.03 mm joining and its seven unresolved paths for cleanup practice.
 4. Use [`examples/100mm_calibration.svg`](examples/100mm_calibration.svg) to check xTool Studio import scale. Its rectangle geometry should measure **100 × 20 mm**; its canvas includes margins.
 
 The reviewed YOMMY project contains five outer contours, 438 stitch-hole contours and one internal cutout. Sample SVGs, individual-piece exports and the geometry report are in [`examples/`](examples/). The source PDF is included as `CARD HOLDER YOMMY.pdf` for the bundled demo and build.
@@ -67,13 +67,13 @@ npx playwright install chromium
 npm run test:ui
 ```
 
-`_site/` contains the hosted app, a freshly built standalone HTML download, guides and samples. The hosted HTML loads separate CSS, theme bootstrap and app JavaScript, plus separate PDF engine, worker and sample PDF assets. Asset filenames contain content hashes so browsers can cache unchanged files independently. All assets use relative URLs compatible with the `/pattern-laser/` project path. The offline download still embeds its CSS, JavaScript, PDF engine, worker and sample; it needs no companion files. It is generated and ignored by Git. The tracked `standalone/` HTML is a prebuilt snapshot; the workflow always rebuilds both hosted and offline versions from the source modules. Download the latest offline utility from the live site's Downloads & guide page.
+`_site/` contains the hosted app, a freshly built standalone HTML download, guides and samples. The hosted HTML loads separate CSS, theme bootstrap and app JavaScript, plus separate PDF engine, worker, original sample PDF and reviewed-project assets. Asset filenames contain content hashes so browsers can cache unchanged files independently. All assets use relative URLs compatible with the `/pattern-laser/` project path. The offline download still embeds its CSS, JavaScript, PDF engine, worker, original sample PDF and reviewed project; it needs no companion files. It is generated and ignored by Git. The tracked `standalone/` HTML is a prebuilt snapshot; the workflow always rebuilds both hosted and offline versions from the source modules. Download the latest offline utility from the live site's Downloads & guide page.
 
 **One-time owner setup:** in [Settings → Pages](https://github.com/DisneyMax/pattern-laser/settings/pages), choose **GitHub Actions** under Build and deployment → Source. The connected integration and workflow token cannot change this setting (GitHub returns HTTP 403). Then rerun the workflow from its Actions page. Deployment checks this setting to prevent the legacy branch publisher from bypassing the tests. The private ChatGPT Site remains separate and requires its own deployment.
 
 ## Playwright UI regression tests
 
-The 20 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
+The 22 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
 
 ```sh
 npm ci

@@ -35,7 +35,8 @@ theme = asset('theme-init', (root / 'theme-init.js').read_bytes(), 'js')
 engine = asset('pdf', (vendor / 'legacy/build/pdf.min.mjs').read_bytes(), 'mjs')
 worker = asset('pdf-worker', (vendor / 'legacy/build/pdf.worker.min.mjs').read_bytes(), 'mjs')
 sample = asset('yommy', (root / 'CARD HOLDER YOMMY.pdf').read_bytes(), 'pdf')
-urls = ','.join(f'{key}:new URL({json.dumps("./"+value)},import.meta.url).href' for key, value in [('engine', engine), ('worker', worker), ('sample', sample)])
+reviewed_sample = asset('yommy-reviewed', (root / 'examples/YOMMY_reviewed.pattern.json').read_bytes(), 'json')
+urls = ','.join(f'{key}:new URL({json.dumps("./"+value)},import.meta.url).href' for key, value in [('engine', engine), ('worker', worker), ('sample', sample), ('reviewedSample', reviewed_sample)])
 modules = ['geometry.mjs', 'downloads.mjs', 'raster.mjs', 'appearance.mjs', 'box-selection.mjs', 'runtime-assets.mjs', 'app.js']
 app_source = 'const HOSTED_ASSETS={' + urls + '};\n' + '\n'.join(re.sub(r'^export ', '', (root / name).read_text(), flags=re.M) for name in modules)
 app = asset('app', app_source, 'mjs')
@@ -45,7 +46,7 @@ html = html.replace('<style>/*__STYLES__*/</style>', f'<link rel="stylesheet" hr
 html = re.sub(r'<script type="module">.*?</script>', f'<script type="module" src="assets/{app}"></script>', html, count=1, flags=re.S)
 html = html.replace('<button id="themeToggle"', '<a class="button" href="downloads.html">Downloads &amp; guide</a><button id="themeToggle"', 1)
 (output / 'index.html').write_text(html)
-manifest = {key: 'assets/' + value for key, value in [('app', app), ('styles', css), ('theme', theme), ('engine', engine), ('worker', worker), ('sample', sample)]}
+manifest = {key: 'assets/' + value for key, value in [('app', app), ('styles', css), ('theme', theme), ('engine', engine), ('worker', worker), ('sample', sample), ('reviewedSample', reviewed_sample)]}
 (output / 'assets-manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')
 # Keep old hashed assets on repeated local builds so open tabs remain usable.
 # CI builds in a clean checkout and publishes only the current artifact.

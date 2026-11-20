@@ -2,15 +2,31 @@ import {test,expect,openApp,reviewedProject,selectionProject,drag,point,download
 
 test.beforeEach(async({page})=>{await openApp(page);});
 
-test('hosted engine, worker and bundled sample load under the Pages project path',async({page})=>{
+test('default reviewed sample loads with no unresolved paths and preserves the reviewed corrections',async({page},testInfo)=>{
  const failed=[];page.on('requestfailed',request=>failed.push(request.url()));
  await page.locator('#sample').click();
- await expect(page.locator('#fileName')).toHaveText('CARD HOLDER YOMMY.pdf');
+ await expect(page.locator('#fileName')).toContainText('CARD HOLDER YOMMY.pdf · reviewed sample');
  await expect(page.locator('#busy')).toBeHidden();
  await expect(page.locator('#viewSummary')).toContainText('215.90 × 279.40 mm');
- expect(await page.locator('#paper .geom').count()).toBeGreaterThan(400);
- await expect(page.locator('#export')).toBeDisabled();
+ await expect(page.locator('#paper .geom')).toHaveCount(444);await expect(page.locator('#export')).toBeEnabled();
+ const {text}=await downloadText(page,testInfo,()=>page.locator('#report').click());const report=JSON.parse(text);
+ expect(report.unresolved).toEqual([]);expect(report.counts.cut).toBe(5);expect(report.counts.inner).toBe(1);expect(report.counts.holes).toBe(438);expect(report.cleanup.tolerance).toBe(.1);
+ expect(report.paths.filter(p=>['p342r0','p344r0'].includes(p.id)).map(p=>p.layer)).toEqual(['reference','reference']);
  expect(failed).toEqual([]);
+});
+
+test('empty-state sample button also loads the reviewed project',async({page})=>{
+ await page.locator('#emptySample').click();await expect(page.locator('#fileName')).toContainText('reviewed sample');
+ await expect(page.locator('#paper .geom')).toHaveCount(444);await expect(page.locator('#export')).toBeEnabled();
+});
+
+test('original PDF keeps its seven review items and can be replaced by the reviewed sample',async({page})=>{
+ await page.locator('#sample').click();await expect(page.locator('#export')).toBeEnabled();
+ await page.locator('#originalSample').click();await expect(page.locator('#busy')).toBeHidden();
+ await expect(page.locator('#fileName')).toHaveText('CARD HOLDER YOMMY.pdf');await expect(page.locator('#tolerance')).toHaveValue('0.03');
+ await expect(page.locator('#exportNotice')).toContainText('7 paths still need review');await expect(page.locator('#export')).toBeDisabled();
+ await page.locator('#sample').click();await expect(page.locator('#busy')).toBeHidden();
+ await expect(page.locator('#paper .geom')).toHaveCount(444);await expect(page.locator('#export')).toBeEnabled();
 });
 
 test('a user-selected vector PDF is imported through the file input',async({page})=>{
@@ -117,7 +133,7 @@ test('hover hints wait 800 ms and can be disabled without removing full help',as
 });
 
 test('missing hosted sample reports an error and leaves import usable',async({page})=>{
- await page.route('**/assets/yommy.*.pdf',route=>route.fulfill({status:404,body:'missing'}));await page.locator('#sample').click();
+ await page.route('**/assets/yommy-reviewed.*.json',route=>route.fulfill({status:404,body:'missing'}));await page.locator('#sample').click();
  await expect(page.locator('#status')).toContainText('Sample download failed (404)');await expect(page.locator('#busy')).toBeHidden();await expect(page.locator('#drop')).toBeEnabled();
 });
 
@@ -132,7 +148,9 @@ test('standalone HTML opens from file and imports its embedded sample without HT
  test.skip(!!process.env.PLAYWRIGHT_SKIP_FILE_URL,'Managed Chromium blocks file URLs by administrator policy; this case runs in CI.');
  const external=[];await page.route(/^https?:/,route=>{external.push(route.request().url());return route.abort();});
  await page.goto(new URL('_site/standalone/Pattern_Laser_Utility.html',repository).href);await expect(page.locator('#drop')).toBeEnabled();
- await page.locator('#sample').click();await expect(page.locator('#fileName')).toHaveText('CARD HOLDER YOMMY.pdf');await expect(page.locator('#busy')).toBeHidden();
+ await page.locator('#sample').click();await expect(page.locator('#fileName')).toContainText('reviewed sample');await expect(page.locator('#busy')).toBeHidden();
+ await expect(page.locator('#paper .geom')).toHaveCount(444);await expect(page.locator('#export')).toBeEnabled();
+ await page.locator('#originalSample').click();await expect(page.locator('#busy')).toBeHidden();await expect(page.locator('#fileName')).toHaveText('CARD HOLDER YOMMY.pdf');
  expect(await page.locator('#paper .geom').count()).toBeGreaterThan(400);expect(external).toEqual([]);
 });
 
@@ -140,7 +158,9 @@ test('standalone HTML opens from file and imports its embedded sample without HT
 test('standalone HTML keeps working after the browser goes offline',async({page,context})=>{
  await page.goto('standalone/Pattern_Laser_Utility.html');await expect(page.locator('#drop')).toBeEnabled();
  await context.setOffline(true);await page.locator('#sample').click();
- await expect(page.locator('#fileName')).toHaveText('CARD HOLDER YOMMY.pdf');await expect(page.locator('#busy')).toBeHidden();
+ await expect(page.locator('#fileName')).toContainText('reviewed sample');await expect(page.locator('#busy')).toBeHidden();
+ await expect(page.locator('#paper .geom')).toHaveCount(444);await expect(page.locator('#export')).toBeEnabled();
+ await page.locator('#originalSample').click();await expect(page.locator('#busy')).toBeHidden();await expect(page.locator('#fileName')).toHaveText('CARD HOLDER YOMMY.pdf');
  expect(await page.locator('#paper .geom').count()).toBeGreaterThan(400);
 });
 
