@@ -1,7 +1,7 @@
-let repairPreview=null,markPreview=null,markGroups=[],markGroupsKey=null;
+let repairPreview=null,markPreview=null,markGroups=[],markGroupsKey=null,markDiagnostics=null;
 const pendingPreview=()=>repairPreview||markPreview;
 function clearPreviewState(){repairPreview=null;markPreview=null;}
-function resetMarkGroups(){markPreview=null;markGroups=[];markGroupsKey=null;}
+function resetMarkGroups(){markPreview=null;markGroups=[];markGroupsKey=null;markDiagnostics=null;}
 const hostedAssets=typeof HOSTED_ASSETS==='undefined'?null:HOSTED_ASSETS;
 const $=id=>document.getElementById(id);
 initAppearance();
@@ -95,8 +95,10 @@ function renderMarkReview(){
  $('findMarkGroups').disabled=!pageInfo;
  $('markGroupControls').hidden=!markGroups.length;
  $('markGroupCount').textContent=markGroupsKey?`${markGroups.length} suggested groups`:pageInfo?'Not scanned':'No paths loaded';
+ $('markScanInfo').textContent=markDiagnostics?markScanSummary(markDiagnostics):'';
+ $('markScanNotes').hidden=!markDiagnostics;
  const group=markGroups[Number($('markGroupSelect').value)||0];
- $('markGroupInfo').textContent=group?`${group.ids.length} editable marks · source diameter ${group.diameterMin.toFixed(2)}–${group.diameterMax.toFixed(2)} mm · spacing about ${group.spacing.toFixed(2)} mm. ${group.manualCount} manual assignment${group.manualCount===1?'':'s'} excluded from changes. Currently: ${group.currentLayers.map(k=>LAYERS[k].name).join(', ')}.`:'';
+ $('markGroupInfo').textContent=group?`${group.positionCount} editable positions · ${group.ids.length} editable paths · ${group.shape} · source diameter ${group.diameterMin.toFixed(2)}–${group.diameterMax.toFixed(2)} mm · spacing about ${group.spacing.toFixed(2)} mm. ${group.manualCount} manual assignment${group.manualCount===1?'':'s'} excluded from changes. Currently: ${group.currentLayers.map(k=>LAYERS[k].name).join(', ')}.${group.currentLayers.length===1&&['holes','hardware'].includes(group.currentLayers[0])?' Already assigned; applying confirms this operation.':''}${group.overlapCount?` ${group.overlapCount} overlapping copies retained.`:''}`:'';
  $('previewMarkGroup').disabled=!group||!$('markGroupRole').value||!!pendingPreview();
  $('markPreviewPanel').hidden=!markPreview;
  $('applyMarkGroup').disabled=!markPreview;
@@ -104,8 +106,8 @@ function renderMarkReview(){
 }
 $('findMarkGroups').onclick=()=>{
  if(loading||!pageInfo)return;clearPreviewState();
- try{markGroups=roundMarkGroups(objects);markGroupsKey=markGroupStateKey(objects);$('markGroupSelect').replaceChildren();
-  for(const [i,group]of markGroups.entries()){const option=document.createElement('option');option.value=String(i);option.textContent=`Group ${i+1}: ${group.ids.length} editable marks`;$('markGroupSelect').append(option);}
+ try{const scan=scanRoundMarks(objects);markGroups=scan.groups;markDiagnostics=scan.diagnostics;markGroupsKey=markGroupStateKey(objects);$('markGroupSelect').replaceChildren();
+  for(const [i,group]of markGroups.entries()){const option=document.createElement('option');option.value=String(i);option.textContent=`Group ${i+1}: ${group.positionCount} positions · ${group.ids.length} editable paths`;$('markGroupSelect').append(option);}
   $('markGroupSelect').value='0';$('markGroupRole').value='';renderStage();renderSelection();
   toast(markGroups.length?'Choose a group and its intended operation, then preview the assignment.':'No regular round-mark rows found. Try manual box selection, or review the outer boundaries first.');
  }catch(error){resetMarkGroups();renderStage();renderSelection();toast(error.message);}

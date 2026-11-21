@@ -1,11 +1,11 @@
 import fs from 'node:fs/promises';
 import {test,expect,openApp,downloadText,local,drag} from './helpers.mjs';
-import {markRows} from '../marks/fixtures.mjs';
+import {markRows,overlappingRow,curvedRow} from '../marks/fixtures.mjs';
 import {rasterPattern} from '../patterns/fixtures.mjs';
 
 test.beforeEach(async({page})=>{await openApp(page);});
-async function project(page,{gap=false}={}){
- const data=JSON.parse(await fs.readFile(local('examples/YOMMY_reviewed.pattern.json'),'utf8')),objects=markRows({manual:[2]});
+async function project(page,{gap=false,customObjects=null}={}){
+ const data=JSON.parse(await fs.readFile(local('examples/YOMMY_reviewed.pattern.json'),'utf8')),objects=customObjects||markRows({manual:[2]});
  if(gap)objects.push({id:'gap',sourceIds:['gap'],cmds:[['M',65,55],['L',75,55],['L',75,65],['L',65,65],['L',65,55.08]],stroke:'#000000',fill:null,alpha:1,width:.1,dash:[],layer:'unassigned',reason:'Small gap'});
  Object.assign(data,{fileName:'round-groups.pdf',sourceFingerprint:null,pageInfo:{width:100,height:80,number:1},objects,raw:objects,vectorRaw:objects,referenceImage:'',scale:1,rasterBatches:[],conversionMode:'vector',warnings:[],stats:{}});
  await page.locator('#projectFile').setInputFiles({name:'round-groups.pattern.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});
@@ -13,7 +13,7 @@ async function project(page,{gap=false}={}){
 }
 async function chooseEditableRow(page){
  await page.locator('#findMarkGroups').click();await expect(page.locator('#markGroupSelect option')).toHaveCount(2);
- const value=await page.locator('#markGroupSelect option').evaluateAll(options=>options.find(o=>o.textContent.includes('5 editable marks')).value);
+ const value=await page.locator('#markGroupSelect option').evaluateAll(options=>options.find(o=>o.textContent.includes('5 positions · 5 editable paths')).value);
  await page.locator('#markGroupSelect').selectOption(value);await expect(page.locator('#markGroupInfo')).toContainText('1 manual assignment excluded');
 }
 async function preview(page,role='holes'){
@@ -24,7 +24,7 @@ test('group preview is non-destructive; Apply and Undo preserve source geometry 
  await project(page);const before=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#saveProject').click())).text);
  await chooseEditableRow(page);await expect(page.locator('#previewMarkGroup')).toBeDisabled();await preview(page);
  await expect(page.locator('.mark-group-preview')).toHaveCount(5);await expect(page.locator('#export')).toBeDisabled();await expect(page.locator('#saveProject')).toBeDisabled();
- await expect(page.locator('#markGroupSummary')).toContainText('Assign 5 marks as Stitch holes');
+ await expect(page.locator('#markGroupSummary')).toContainText('Assign 5 paths at 5 positions as Stitch holes');
  await testInfo.attach('round-mark-group-preview',{body:await page.screenshot(),contentType:'image/png'});
  const pending=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#report').click())).text);for(const layer of ['holes','hardware'])expect(pending.counts[layer]).toBe(before.objects.filter(o=>o.layer===layer).length);
  await page.locator('#cancelMarkGroup').click();await expect(page.locator('.mark-group-preview')).toHaveCount(0);await expect(page.locator('#export')).toBeEnabled();
@@ -39,7 +39,7 @@ test('group assignments survive save/reopen and protected rows are not proposed 
  await project(page);await chooseEditableRow(page);await preview(page);await page.locator('#applyMarkGroup').click();
  const saved=await downloadText(page,testInfo,()=>page.locator('#saveProject').click());await page.reload();await expect(page.locator('#drop')).toBeEnabled();await page.locator('#projectFile').setInputFiles(saved.filename);
  await expect(page.locator('#fileName')).toContainText('round-groups.pdf');
- await page.locator('#findMarkGroups').click();await expect(page.locator('#markGroupSelect option')).toHaveCount(1);await expect(page.locator('#markGroupInfo')).toContainText('6 editable marks');
+ await page.locator('#findMarkGroups').click();await expect(page.locator('#markGroupSelect option')).toHaveCount(1);await expect(page.locator('#markGroupInfo')).toContainText('6 editable positions');
  const report=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#report').click())).text);expect(report.counts.holes).toBe(11);expect(report.counts.hardware).toBe(1);
 });
 
@@ -74,4 +74,39 @@ test('group preview reflects explicit output hole resizing without changing sour
  await page.locator('#applyMarkGroup').click();const saved=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#saveProject').click())).text);
  for(const original of before.objects)expect(saved.objects.find(o=>o.id===original.id).cmds).toEqual(original.cmds);
  const svg=(await downloadText(page,testInfo,()=>page.locator('#export').click())).text;expect(svg).toContain('r="0.75"');
+});
+
+
+test('overlapping copies share positions while Apply, save/reopen and Undo retain every source path',async({page},testInfo)=>{
+ await project(page,{customObjects:overlappingRow({manual:true})});
+ const before=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#saveProject').click())).text);
+ await page.locator('#findMarkGroups').click();await expect(page.locator('#markGroupSelect option')).toHaveCount(1);
+ await expect(page.locator('#markGroupSelect')).toContainText('6 positions · 23 editable paths');
+ await expect(page.locator('#markScanInfo')).toContainText('18 overlapping copies');await expect(page.locator('#markScanInfo')).toContainText('All source paths remain');
+ await preview(page,'hardware');await expect(page.locator('.mark-group-preview')).toHaveCount(23);await expect(page.locator('#markGroupSummary')).toContainText('23 paths at 6 positions');
+ await expect(page.locator('#markGroupSummary')).toContainText('does not remove repeated laser paths');
+ await page.locator('#applyMarkGroup').click();const saved=await downloadText(page,testInfo,()=>page.locator('#saveProject').click()),after=JSON.parse(saved.text);
+ expect(after.objects).toHaveLength(before.objects.length);for(const original of before.objects){const result=after.objects.find(o=>o.id===original.id);expect(result.cmds).toEqual(original.cmds);expect(result.bbox).toEqual(original.bbox);if(original.manualLayer)expect(result).toEqual(original);}
+ expect(after.objects.filter(o=>o.manualLayer==='hardware')).toHaveLength(24);
+ await page.locator('#undo').click();const restored=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#saveProject').click())).text);expect(restored.objects).toEqual(before.objects);
+ await page.locator('#projectFile').setInputFiles({name:'reviewed-copies.pattern.json',mimeType:'application/json',buffer:Buffer.from(saved.text)});await page.locator('#findMarkGroups').click();await expect(page.locator('#markGroupControls')).toBeHidden();await expect(page.locator('#markScanInfo')).toContainText('24 manual assignments');
+});
+
+test('gently curved stitching is previewed as one group with existing assignments clearly identified',async({page})=>{
+ await project(page,{customObjects:curvedRow()});await page.locator('#findMarkGroups').click();await expect(page.locator('#markGroupSelect option')).toHaveCount(1);
+ await expect(page.locator('#markGroupInfo')).toContainText('7 editable positions');await expect(page.locator('#markGroupInfo')).toContainText('continuous row');
+ await expect(page.locator('#markGroupInfo')).toContainText('Already assigned; applying confirms');await preview(page);await expect(page.locator('.mark-group-preview')).toHaveCount(7);
+});
+
+test('original YOMMY sample groups overlapping rows and explains holes excluded by open boundaries',async({page},testInfo)=>{
+ await page.locator('#originalSample').click();await expect(page.locator('#busy')).toBeHidden();
+ await page.locator('#findMarkGroups').click();await expect(page.locator('#markGroupSelect option')).toHaveCount(5);
+ await expect(page.locator('#markGroupSelect')).toContainText('30 positions · 71 editable paths');
+ await page.locator('#markScanNotes summary').click();await expect(page.locator('#markScanInfo')).toBeVisible();
+ await expect(page.locator('#markScanInfo')).toContainText('217 round paths outside recognized closed cut boundaries');
+ await expect(page.locator('#markScanInfo')).toContainText('123 overlapping copies');
+ await expect(page.locator('#markScanInfo')).toContainText('6 editable positions did not form');
+ const report=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#report').click())).text);expect(report.counts.holes).toBe(438);expect(report.unresolved).toHaveLength(7);
+ await page.locator('#markScanNotes summary').click();await preview(page);await expect(page.locator('.mark-group-preview')).toHaveCount(71);await testInfo.attach('yommy-continuous-group-preview',{body:await page.screenshot(),contentType:'image/png'});
+ await page.locator('#cancelMarkGroup').click();await expect(page.locator('#export')).toBeDisabled();
 });
