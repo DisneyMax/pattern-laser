@@ -39,7 +39,7 @@ The source modules, `index.template.html`, `styles.css`, `theme-init.js`, build 
 
 ## Validation and limits
 
-The current default suite contains 180 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
+The current default suite contains 186 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
 
 Raster tracing approximates the printed design. Review the overlay, operation assignments and physical scale before exporting. SVG colours do not include laser power, speed or processing assignments. This version does not assemble tiled sheets, nest pieces or calculate kerf.
 
@@ -73,7 +73,7 @@ npm run test:ui
 
 ## Playwright UI regression tests
 
-The 39 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, round-mark group preview/apply/Undo, protected manual assignments, output hole resizing, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
+The 41 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, round-mark group preview/apply/Undo, protected manual assignments, output hole resizing, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
 
 ```sh
 npm ci
@@ -100,7 +100,12 @@ Branches, clipped/unsupported paths, ambiguous connections, large gaps and close
 
 ## Round-mark group review
 
-Use **Find round-mark groups** to suggest straight rows of at least three round positions and gently curved continuous rows of at least four positions with similar source diameters and regular spacing inside a closed outer cut boundary. Choose a group, then explicitly select **Stitch holes** or **Fastener / round marks** and click **Preview group**. Check every highlighted mark against the original before applying: a regular row does not establish its purpose.
+Choose **Group scope**, then click **Find round-mark groups**:
+
+- **Continuous rows** suggests straight rows of at least three positions and gently curved rows of at least four, with similar source diameters and regular spacing.
+- **Whole piece · all round marks** groups every eligible automatic round mark inside each recognized closed cut boundary, including disconnected rows, sharp corners, isolated marks and hardware candidates of different sizes. It does not require regular spacing. Separate pieces remain separate; nested boundaries use the smallest containing cut boundary.
+
+Choose a group or piece, explicitly select **Stitch holes** or **Fastener / round marks**, then click **Preview group assignment**. Whole-piece scope can include hardware holes: inspect every highlighted mark before applying. Marks need closed, unclipped circular source paths of 0.25–10 mm diameter in Stitch holes, Fastener / round marks or Needs review. Reference geometry and existing manual assignments are excluded from changes. Changing scope cancels the pending group preview and requires a new scan.
 
 The dropdown distinguishes **positions** from **editable paths**: several nearly overlapping circles may occupy one position. Centers within 0.03 mm (or 10% of the smaller diameter, whichever is smaller) and nearly equal diameters share a position for detection only. All source paths remain. Preview and Apply include every eligible automatic copy while protecting manual copies. This feature does not remove duplicate laser paths; inspect overlaps and clean duplicates separately before cutting.
 
@@ -108,7 +113,7 @@ Scan notes report round paths outside recognized closed cut boundaries, unsuppor
 
 **Apply group** changes only the operation of the editable marks and adds one Undo step. Existing manual assignments stay unchanged, including marks used as row anchors. Source commands, sizes and positions are preserved. Export and project saving wait until you apply or cancel the preview; applying requires fresh raster review acknowledgement. The existing optional stitch-hole resize setting still applies to exported stitching and is shown in the group preview. Find groups again after applying to review remaining rows.
 
-Sharp corners, branches, irregular spacing, isolated marks, clipped features, rows outside closed cut boundaries and more than 1,500 candidate paths need manual review or box selection. Group suggestions are temporary; applied operations are retained in saved projects.
+For Continuous rows, sharp corners, branches, irregular spacing and isolated marks can split or prevent suggestions; use Whole piece to cover all eligible marks in a piece. In both scopes, clipped or unsupported features, marks outside closed cut boundaries and more than 1,500 candidate paths need boundary repair or manual selection. Group suggestions are temporary; applied operations are retained in saved projects.
 
 ## Pattern corpus regression coverage
 
