@@ -10,3 +10,9 @@ export function markRows({manual=[],secondRow=true,sourceType='vector'}={}){
  if(secondRow)for(let i=0;i<6;i++)objects.push(roundMark('b'+i,10+i*6,45,.9,{layer:'holes',sourceType}));
  return objects;
 }
+export function overlappingRow({manual=false}={}){
+ const objects=[markHost()];
+ for(let i=0;i<6;i++)for(let copy=0;copy<4;copy++)objects.push(roundMark(`a${i}c${copy}`,10+i*6+[0,.004,.006,.014][copy],15+(copy===3?.003:0),1+(copy===3?.0002:0),{manualLayer:manual&&i===2&&copy===0?'hardware':null}));
+ return objects;
+}
+export function curvedRow(){return [markHost(),...Array.from({length:7},(_,i)=>roundMark('curve'+i,50+20*Math.cos(i*Math.PI/12),30+20*Math.sin(i*Math.PI/12),1))];}
