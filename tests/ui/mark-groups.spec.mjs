@@ -110,3 +110,24 @@ test('original YOMMY sample groups overlapping rows and explains holes excluded 
  await page.locator('#markScanNotes summary').click();await preview(page);await expect(page.locator('.mark-group-preview')).toHaveCount(71);await testInfo.attach('yommy-continuous-group-preview',{body:await page.screenshot(),contentType:'image/png'});
  await page.locator('#cancelMarkGroup').click();await expect(page.locator('#export')).toBeDisabled();
 });
+
+
+test('whole-piece scope highlights all eligible holes on both sides and around corners of the public sample',async({page},testInfo)=>{
+ await page.locator('#originalSample').click();await expect(page.locator('#busy')).toBeHidden();await page.locator('#markGroupScope').selectOption('piece');await page.locator('#findMarkGroups').click();
+ await expect(page.locator('#markGroupSelect option')).toHaveCount(2);await expect(page.locator('#markGroupSelect')).toContainText('53 positions · 124 editable paths');await expect(page.locator('#markGroupSelect')).toContainText('45 positions · 97 editable paths');
+ await preview(page);await expect(page.locator('.mark-group-preview')).toHaveCount(124);await expect(page.locator('#markGroupSummary')).toContainText('hardware candidates regardless of spacing or size');
+ await page.locator('#cancelMarkGroup').click();await page.locator('#markGroupSelect').selectOption('1');await preview(page);await expect(page.locator('.mark-group-preview')).toHaveCount(97);
+ await testInfo.attach('whole-piece-round-mark-preview',{body:await page.screenshot(),contentType:'image/png'});
+ const report=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#report').click())).text);expect(report.counts.holes).toBe(438);expect(report.unresolved).toHaveLength(7);
+ await page.locator('#markGroupScope').selectOption('rows');await expect(page.locator('#markPreviewPanel')).toBeHidden();await expect(page.locator('#markGroupControls')).toBeHidden();await expect(page.locator('#saveProject')).toBeEnabled();
+ await page.locator('#findMarkGroups').click();await expect(page.locator('#markGroupSelect option')).toHaveCount(5);
+});
+
+test('whole-piece scope applies every disconnected row in one Undo step and preserves manual choices',async({page},testInfo)=>{
+ await project(page);const before=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#saveProject').click())).text);
+ await page.locator('#markGroupScope').selectOption('piece');await page.locator('#findMarkGroups').click();await expect(page.locator('#markGroupSelect option')).toHaveCount(1);
+ await expect(page.locator('#markGroupInfo')).toContainText('11 editable positions');await expect(page.locator('#markGroupInfo')).toContainText('1 manual assignment excluded');
+ await preview(page,'hardware');await expect(page.locator('.mark-group-preview')).toHaveCount(11);await page.locator('#applyMarkGroup').click();
+ const after=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#saveProject').click())).text);expect(after.objects.filter(o=>o.manualLayer==='hardware')).toHaveLength(12);for(const original of before.objects){const result=after.objects.find(o=>o.id===original.id);expect(result.cmds).toEqual(original.cmds);if(original.manualLayer)expect(result).toEqual(original);}
+ await page.locator('#undo').click();const restored=JSON.parse((await downloadText(page,testInfo,()=>page.locator('#saveProject').click())).text);expect(restored.objects).toEqual(before.objects);
+});

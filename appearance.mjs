@@ -10,8 +10,9 @@ export function createHelpButton(text,name='this control'){
 }
 export function makeHelpRow(label,text,name){const row=document.createElement('div');row.className='help-check-row';setHelp(label,text);row.append(label,createHelpButton(text,name));return row;}
 export const CONTROL_HELP={
- findMarkGroups:'Find straight or gently curved rows with similar sizes and regular spacing inside a closed outer contour. Near-overlapping copies share one position for detection only; no source paths are removed. Scan notes explain exclusions. Manual assignments are protected.',
- markGroupSelect:'Choose a proposed row to inspect. Groups describe geometry, not confirmed stitching; choose the intended operation and preview all highlighted marks.',
+ markGroupScope:'Continuous rows suggest regular straight or gently curved sequences. Whole piece includes all eligible round marks inside each closed cut boundary, including separate rows, corners and hardware candidates of different sizes. Choose the intended operation after inspecting the preview; manual assignments remain protected.',
+ findMarkGroups:'Scan using the selected scope: continuous rows or all eligible round marks inside each closed cut boundary. Overlapping copies share detection positions; source paths and manual assignments are preserved. Scan notes explain exclusions.',
+ markGroupSelect:'Choose a proposed row or piece to inspect. Whole-piece groups can include hardware holes. Choose the intended operation and preview every highlighted mark before applying.',
  markGroupRole:'Choose Stitch holes or Fastener / round marks for this group. Nothing changes until Apply group. Global stitch-hole resizing applies after assigning Stitch holes.',
  previewMarkGroup:'Highlight the marks that would receive the chosen operation. Their source paths and sizes stay unchanged; current hole-resizing settings are shown in the preview.',
  applyMarkGroup:'Apply the previewed operation to editable group members only. Existing manual assignments stay unchanged. This creates one Undo step and resets raster review acknowledgement.',

@@ -98,18 +98,19 @@ function renderMarkReview(){
  $('markScanInfo').textContent=markDiagnostics?markScanSummary(markDiagnostics):'';
  $('markScanNotes').hidden=!markDiagnostics;
  const group=markGroups[Number($('markGroupSelect').value)||0];
- $('markGroupInfo').textContent=group?`${group.positionCount} editable positions · ${group.ids.length} editable paths · ${group.shape} · source diameter ${group.diameterMin.toFixed(2)}–${group.diameterMax.toFixed(2)} mm · spacing about ${group.spacing.toFixed(2)} mm. ${group.manualCount} manual assignment${group.manualCount===1?'':'s'} excluded from changes. Currently: ${group.currentLayers.map(k=>LAYERS[k].name).join(', ')}.${group.currentLayers.length===1&&['holes','hardware'].includes(group.currentLayers[0])?' Already assigned; applying confirms this operation.':''}${group.overlapCount?` ${group.overlapCount} overlapping copies retained.`:''}`:'';
+ $('markGroupInfo').textContent=group?`${group.positionCount} editable positions · ${group.ids.length} editable paths · ${group.shape} · source diameter ${group.diameterMin.toFixed(2)}–${group.diameterMax.toFixed(2)} mm ${group.spacing===null?' · includes disconnected rows, corners and hardware candidates.':` · spacing about ${group.spacing.toFixed(2)} mm.`} ${group.manualCount} manual assignment${group.manualCount===1?'':'s'} excluded from changes. Currently: ${group.currentLayers.map(k=>LAYERS[k].name).join(', ')}.${group.currentLayers.length===1&&['holes','hardware'].includes(group.currentLayers[0])?' Already assigned; applying confirms this operation.':''}${group.overlapCount?` ${group.overlapCount} overlapping copies retained.`:''}`:'';
  $('previewMarkGroup').disabled=!group||!$('markGroupRole').value||!!pendingPreview();
  $('markPreviewPanel').hidden=!markPreview;
  $('applyMarkGroup').disabled=!markPreview;
  $('markGroupSummary').textContent=markPreview?markPreview.summary+(markPreview.layer==='holes'&&$('resizeHoles').checked?` The current stitch-hole resize setting (${Number($('holeDiameter').value).toFixed(2)} mm output) applies to these marks.`:''):'';
 }
+$('markGroupScope').onchange=()=>{resetMarkGroups();$('markGroupSelect').replaceChildren();$('markGroupRole').value='';renderStage();renderSelection();};
 $('findMarkGroups').onclick=()=>{
  if(loading||!pageInfo)return;clearPreviewState();
- try{const scan=scanRoundMarks(objects);markGroups=scan.groups;markDiagnostics=scan.diagnostics;markGroupsKey=markGroupStateKey(objects);$('markGroupSelect').replaceChildren();
-  for(const [i,group]of markGroups.entries()){const option=document.createElement('option');option.value=String(i);option.textContent=`Group ${i+1}: ${group.positionCount} positions · ${group.ids.length} editable paths`;$('markGroupSelect').append(option);}
+ try{const scan=scanRoundMarks(objects,{scope:$('markGroupScope').value||'rows'});markGroups=scan.groups;markDiagnostics=scan.diagnostics;markGroupsKey=markGroupStateKey(objects);$('markGroupSelect').replaceChildren();
+  for(const [i,group]of markGroups.entries()){const option=document.createElement('option');option.value=String(i);option.textContent=`${group.scope==='piece'?'Piece':'Group'} ${i+1}: ${group.positionCount} positions · ${group.ids.length} editable paths`;$('markGroupSelect').append(option);}
   $('markGroupSelect').value='0';$('markGroupRole').value='';renderStage();renderSelection();
-  toast(markGroups.length?'Choose a group and its intended operation, then preview the assignment.':'No regular round-mark rows found. Try manual box selection, or review the outer boundaries first.');
+  toast(markGroups.length?'Choose a group and its intended operation, then preview the assignment.':($('markGroupScope').value==='piece'?'No editable round marks inside closed cut boundaries. Review open boundaries or use manual selection.':'No regular round-mark rows found. Try Whole piece scope, manual selection, or review outer boundaries.'));
  }catch(error){resetMarkGroups();renderStage();renderSelection();toast(error.message);}
 };
 for(const id of ['markGroupSelect','markGroupRole'])$(id).onchange=()=>{if(markPreview)markPreview=null;renderStage();renderSelection();};

@@ -23,7 +23,8 @@ function markPositions(marks){
  return positions;
 }
 export const roundMarkGroups=objects=>scanRoundMarks(objects).groups;
-export function scanRoundMarks(objects){
+export function scanRoundMarks(objects,{scope='rows'}={}){
+ if(!['rows','piece'].includes(scope))throw new Error('Choose continuous rows or whole-piece grouping.');
  const hosts=objects.filter(o=>o.layer==='cut'&&o.closed&&!o.clipped&&!o.outsideClip&&o.bbox.w>8&&o.bbox.h>8).map(o=>({id:o.id,area:o.bbox.w*o.bbox.h,polygon:samples(o.cmds)})).sort((a,b)=>a.area-b.area);
  const marks=[],diagnostics={roundPaths:0,outsideBoundaryPaths:0,unsupportedPaths:0,manualPaths:0,overlapPaths:0,ungroupedPositions:0};
  for(const o of objects){
@@ -38,14 +39,15 @@ export function scanRoundMarks(objects){
  diagnostics.manualPaths=marks.filter(m=>m.manual).length;
  diagnostics.overlapPaths=marks.length-positions.length;
  const addCandidate=(members,pitch,shape='straight row')=>{
-  const paths=members.flatMap(p=>p.paths),editable=paths.filter(p=>!p.manual);if(members.length<3||!editable.length)return;
-  const sizes=paths.map(p=>p.diameter);if(Math.max(...sizes)/Math.min(...sizes)>1.4)return;
+  const paths=members.flatMap(p=>p.paths),editable=paths.filter(p=>!p.manual);if(members.length<(scope==='piece'?1:3)||!editable.length)return;
+  const sizes=paths.map(p=>p.diameter);if(scope==='rows'&&Math.max(...sizes)/Math.min(...sizes)>1.4)return;
   const ids=editable.map(p=>p.id).sort(),key=ids.join('|');if(candidates.has(key))return;
   const diameters=editable.map(p=>p.diameter);
-  candidates.set(key,{id:key,ids,hostId:members[0].host,manualCount:paths.length-editable.length,positionCount:members.filter(p=>p.paths.some(m=>!m.manual)).length,totalPositionCount:members.length,overlapCount:paths.length-members.length,diameterMin:Math.min(...diameters),diameterMax:Math.max(...diameters),spacing:pitch,shape,currentLayers:[...new Set(editable.map(p=>p.layer))].sort()});
+  candidates.set(key,{id:key,ids,scope,hostId:members[0].host,manualCount:paths.length-editable.length,positionCount:members.filter(p=>p.paths.some(m=>!m.manual)).length,totalPositionCount:members.length,overlapCount:paths.length-members.length,diameterMin:Math.min(...diameters),diameterMax:Math.max(...diameters),spacing:pitch,shape,currentLayers:[...new Set(editable.map(p=>p.layer))].sort()});
  };
  for(const host of hosts){
   const row=positions.filter(m=>m.host===host.id);
+  if(scope==='piece'){addCandidate(row,null,'whole piece');continue;}
   for(const a of row){
    const neighbors=row.filter(b=>b!==a&&Math.max(a.diameter,b.diameter)/Math.min(a.diameter,b.diameter)<=1.4&&markDistance(a,b)>Math.max(a.diameter,b.diameter)*1.5&&markDistance(a,b)<=20).sort((b,c)=>markDistance(a,b)-markDistance(a,c)).slice(0,8);
    for(const b of neighbors){
@@ -88,7 +90,7 @@ export function previewMarkGroup(objects,group,layer){
  const ids=new Set(group.ids),chosen=objects.filter(o=>ids.has(o.id));
  if(chosen.length!==ids.size||chosen.some(o=>o.manualLayer||!markCandidate(o)||!circleInfo(o,{maxDiameter:10})))throw new Error('Group membership changed. Find round-mark groups again.');
  const result=chosen.map(o=>({...structuredClone(o),layer,manualLayer:layer,reason:`Round-mark group explicitly assigned as ${layer==='holes'?'stitching':'hardware'}; original geometry retained`}));
- return {beforeKey:markGroupStateKey(objects),ids:[...ids],objects:result,layer,manualCount:group.manualCount,summary:`Assign ${chosen.length} paths at ${group.positionCount} positions as ${layer==='holes'?'Stitch holes':'Fastener / round marks'}. Geometry and source sizes stay unchanged. ${group.manualCount} existing manual assignment${group.manualCount===1?' stays':'s stay'} unchanged.${group.overlapCount?` ${group.overlapCount} overlapping copies are retained; this does not remove repeated laser paths.`:''}`};
+ return {beforeKey:markGroupStateKey(objects),ids:[...ids],objects:result,layer,manualCount:group.manualCount,summary:`Assign ${chosen.length} paths at ${group.positionCount} positions as ${layer==='holes'?'Stitch holes':'Fastener / round marks'}. Geometry and source sizes stay unchanged. ${group.manualCount} existing manual assignment${group.manualCount===1?' stays':'s stay'} unchanged.${group.scope==='piece'?' Whole-piece scope includes stitching and hardware candidates regardless of spacing or size; verify every highlighted mark.':''}${group.overlapCount?` ${group.overlapCount} overlapping copies are retained; this does not remove repeated laser paths.`:''}`};
 }
 export function applyMarkGroup(objects,preview){
  if(!preview||preview.beforeKey!==markGroupStateKey(objects))throw new Error('Pattern changed after the preview. Find round-mark groups again.');
