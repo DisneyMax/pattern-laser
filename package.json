@@ -6,7 +6,7 @@
   "description": "Local PDF vector extraction and raster tracing utility for leather patterns",
   "scripts": {
     "build": "python3 build.py",
-    "test": "node tests.mjs && node download-tests.mjs && node clipping-tests.mjs && node feature-tests.mjs && node raster-tests.mjs && node ui-state-tests.mjs && node appearance-tests.mjs && node box-selection-tests.mjs && node runtime-tests.mjs && node review-tests.mjs && node pattern-regression-tests.mjs && node mark-groups-tests.mjs",
+    "test": "node tests.mjs && node download-tests.mjs && node clipping-tests.mjs && node feature-tests.mjs && node raster-tests.mjs && node ui-state-tests.mjs && node appearance-tests.mjs && node box-selection-tests.mjs && node runtime-tests.mjs && node review-tests.mjs && node pattern-regression-tests.mjs && node mark-groups-tests.mjs && node duplicate-paths-tests.mjs",
     "build:pages": "python3 build-pages.py",
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed",

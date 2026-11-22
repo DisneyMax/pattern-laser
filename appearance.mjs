@@ -10,6 +10,14 @@ export function createHelpButton(text,name='this control'){
 }
 export function makeHelpRow(label,text,name){const row=document.createElement('div');row.className='help-check-row';setHelp(label,text);row.append(label,createHelpButton(text,name));return row;}
 export const CONTROL_HELP={
+ duplicateManual:'Off by default: every manually assigned path stays. Enable to remove redundant manual copies only when operations and styles match; one original manual path and its operation are retained per group. Rescan and inspect the preview. Conflicting operations remain manual.',
+ findDuplicates:'Scan current paths without rebuilding cleanup. Exact command copies and near-overlapping round paths are separate; conflicting operations or styles stay manual. Nothing is removed by scanning.',
+ duplicateKind:'Exact matches require identical source commands. Near matches compare circular source paths within small center and diameter tolerances; they can represent intentional geometry and always need inspection.',
+ duplicateGroup:'Review all compatible groups or one group. For near matches, the first individual group is selected initially. Retained IDs are shown. Matching redundant manual copies are removed only if explicitly enabled; a manual keeper and its operation remain.',
+ previewDuplicates:'Show retained source paths in green and proposed removals in dashed red. Export and project saving wait until Apply or Cancel. No geometry changes during preview.',
+ applyDuplicates:'Remove only the previewed automatic copies. Retained geometry, styles and manual operations stay unchanged. Matching redundant manual paths are removed only if Allow matching manual copies was enabled. Creates one Undo step and requires fresh raster review. Source cleanup rebuilds or retracing can reintroduce copies.',
+ cancelDuplicates:'Discard the duplicate-removal preview without changing any paths. Escape also cancels.',
+
  markGroupScope:'Continuous rows suggest regular straight or gently curved sequences. Whole piece includes all eligible round marks inside each closed cut boundary, including separate rows, corners and hardware candidates of different sizes. Choose the intended operation after inspecting the preview; manual assignments remain protected.',
  findMarkGroups:'Scan using the selected scope: continuous rows or all eligible round marks inside each closed cut boundary. Overlapping copies share detection positions; source paths and manual assignments are preserved. Scan notes explain exclusions.',
  markGroupSelect:'Choose a proposed row or piece to inspect. Whole-piece groups can include hardware holes. Choose the intended operation and preview every highlighted mark before applying.',

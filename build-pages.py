@@ -37,7 +37,7 @@ worker = asset('pdf-worker', (vendor / 'legacy/build/pdf.worker.min.mjs').read_b
 sample = asset('yommy', (root / 'CARD HOLDER YOMMY.pdf').read_bytes(), 'pdf')
 reviewed_sample = asset('yommy-reviewed', (root / 'examples/YOMMY_reviewed.pattern.json').read_bytes(), 'json')
 urls = ','.join(f'{key}:new URL({json.dumps("./"+value)},import.meta.url).href' for key, value in [('engine', engine), ('worker', worker), ('sample', sample), ('reviewedSample', reviewed_sample)])
-modules = ['geometry.mjs', 'downloads.mjs', 'raster.mjs', 'appearance.mjs', 'box-selection.mjs', 'runtime-assets.mjs', 'review.mjs', 'mark-groups.mjs', 'app.js']
+modules = ['geometry.mjs', 'downloads.mjs', 'raster.mjs', 'appearance.mjs', 'box-selection.mjs', 'runtime-assets.mjs', 'review.mjs', 'mark-groups.mjs', 'duplicate-paths.mjs', 'app.js']
 app_source = 'const HOSTED_ASSETS={' + urls + '};\n' + '\n'.join(re.sub(r'^import [^\n]*;\n', '', re.sub(r'^export ', '', (root / name).read_text(), flags=re.M), flags=re.M) for name in modules)
 app = asset('app', app_source, 'mjs')
 html = (root / 'index.template.html').read_text()
