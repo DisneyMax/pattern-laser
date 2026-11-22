@@ -13,3 +13,6 @@ button{border-color:var(--control-border)}button:hover{background:var(--hover)}b
 .repair-note{padding:10px;border:1px solid var(--focus);border-radius:7px;background:var(--mint);font-size:12px;line-height:1.6}.repair-before{opacity:.25}.repair-preview{fill:none;stroke:#168bd2;stroke-width:2px;stroke-dasharray:6 3;vector-effect:non-scaling-stroke;pointer-events:none}
 
 .mark-group-preview{fill:none;stroke:#168bd2;stroke-width:2px;stroke-dasharray:3 2;vector-effect:non-scaling-stroke;pointer-events:none}
+
+.duplicate-keep{fill:none;stroke:#168963;stroke-width:3px;vector-effect:non-scaling-stroke;pointer-events:none}
+.duplicate-remove{fill:none;stroke:#e24a3b;stroke-width:1.6px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;pointer-events:none}

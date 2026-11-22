@@ -39,7 +39,7 @@ The source modules, `index.template.html`, `styles.css`, `theme-init.js`, build 
 
 ## Validation and limits
 
-The current default suite contains 186 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
+The current default suite contains 215 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
 
 Raster tracing approximates the printed design. Review the overlay, operation assignments and physical scale before exporting. SVG colours do not include laser power, speed or processing assignments. This version does not assemble tiled sheets, nest pieces or calculate kerf.
 
@@ -73,7 +73,7 @@ npm run test:ui
 
 ## Playwright UI regression tests
 
-The 41 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, round-mark group preview/apply/Undo, protected manual assignments, output hole resizing, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
+The 47 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, round-mark group preview/apply/Undo, protected manual assignments, output hole resizing, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
 
 ```sh
 npm ci
@@ -114,6 +114,21 @@ Scan notes report round paths outside recognized closed cut boundaries, unsuppor
 **Apply group** changes only the operation of the editable marks and adds one Undo step. Existing manual assignments stay unchanged, including marks used as row anchors. Source commands, sizes and positions are preserved. Export and project saving wait until you apply or cancel the preview; applying requires fresh raster review acknowledgement. The existing optional stitch-hole resize setting still applies to exported stitching and is shown in the group preview. Find groups again after applying to review remaining rows.
 
 For Continuous rows, sharp corners, branches, irregular spacing and isolated marks can split or prevent suggestions; use Whole piece to cover all eligible marks in a piece. In both scopes, clipped or unsupported features, marks outside closed cut boundaries and more than 1,500 candidate paths need boundary repair or manual selection. Group suggestions are temporary; applied operations are retained in saved projects.
+
+## Duplicate-path review
+
+Use **Find duplicate paths** under **Duplicate paths** to review the current geometry without rebuilding cleanup. Scanning does not remove anything. Choose a match type and the groups to inspect:
+
+- **Exact command copies** have identical source path commands, compatible styles and the same processing operation. Reversed paths, different starting points or different segment structures are not recognized as exact copies by this review.
+- **Near-overlapping round paths** have source centers within 0.03 mm or 10% of the smaller diameter, whichever is smaller, and diameter differences within 0.005 mm or 2% of the smaller diameter, whichever is larger. Only circles of 0.25–10 mm diameter are compared. Groups use pairwise bounds, so a chain of nearby paths cannot absorb a wider area. These paths can represent intentional differences; compare them with the PDF.
+
+Exact matches initially target all compatible groups. Near matches initially target one individual group; choose **All compatible groups** explicitly to preview several together. Near groups can also contain exact copies. Conflicting operations/styles, clipped, faint, dashed, unresolved and reference geometry stay manual.
+
+Manual paths are protected by default. **Allow matching manual copies** permits redundant copies with matching operations and styles to be removed while retaining an original manual path and its operation. Changing this option clears the scan and pending removal preview. Different manual operations are never combined.
+
+**Preview removal** shows retained source paths in green and proposed removals in dashed red, with before/after counts and source center/diameter differences for near matches. The overlay uses source geometry; output hole resizing is unchanged. Export and project saving wait until **Apply removal**, **Cancel removal**, or Escape. Applying removes only the previewed copies, keeps retained commands and operations unchanged, adds one Undo step and requires fresh raster acknowledgement. Changing match type, group, view, selection or geometry cancels the pending preview. Save a project to retain the result; rebuilding cleanup, switching PDF pages or retracing starts from source geometry and can reintroduce copies. Saved projects do not retain Undo history.
+
+This review scans up to 20,000 current paths and compares up to 3,000 round paths per page. A successful scan is not a guarantee that every possible repeated laser path has been detected.
 
 ## Pattern corpus regression coverage
 

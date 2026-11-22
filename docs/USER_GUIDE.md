@@ -103,6 +103,19 @@ Scan notes report round paths outside recognized closed cut boundaries, unsuppor
 
 For Continuous rows, sharp corners, branches, irregular spacing and isolated marks can split or prevent suggestions; use Whole piece to cover all eligible marks in a piece. In both scopes, clipped or unsupported features, marks outside closed cut boundaries and more than 1,500 candidate paths need boundary repair or manual selection. Group suggestions are temporary; applied operations are retained in saved projects.
 
+Use **Find duplicate paths** under **Duplicate paths** to review the current geometry without rebuilding cleanup. Scanning does not remove anything. Choose a match type and the groups to inspect:
+
+- **Exact command copies** have identical source path commands, compatible styles and the same processing operation. Reversed paths, different starting points or different segment structures are not recognized as exact copies by this review.
+- **Near-overlapping round paths** have source centers within 0.03 mm or 10% of the smaller diameter, whichever is smaller, and diameter differences within 0.005 mm or 2% of the smaller diameter, whichever is larger. Only circles of 0.25–10 mm diameter are compared. Groups use pairwise bounds, so a chain of nearby paths cannot absorb a wider area. These paths can represent intentional differences; compare them with the PDF.
+
+Exact matches initially target all compatible groups. Near matches initially target one individual group; choose **All compatible groups** explicitly to preview several together. Near groups can also contain exact copies. Conflicting operations/styles, clipped, faint, dashed, unresolved and reference geometry stay manual.
+
+Manual paths are protected by default. **Allow matching manual copies** permits redundant copies with matching operations and styles to be removed while retaining an original manual path and its operation. Changing this option clears the scan and pending removal preview. Different manual operations are never combined.
+
+**Preview removal** shows retained source paths in green and proposed removals in dashed red, with before/after counts and source center/diameter differences for near matches. The overlay uses source geometry; output hole resizing is unchanged. Export and project saving wait until **Apply removal**, **Cancel removal**, or Escape. Applying removes only the previewed copies, keeps retained commands and operations unchanged, adds one Undo step and requires fresh raster acknowledgement. Changing match type, group, view, selection or geometry cancels the pending preview. Save a project to retain the result; rebuilding cleanup, switching PDF pages or retracing starts from source geometry and can reintroduce copies. Saved projects do not retain Undo history.
+
+This review scans up to 20,000 current paths and compares up to 3,000 round paths per page. A successful scan is not a guarantee that every possible repeated laser path has been detected.
+
 For geometry repairs:
 
 - **Join selected paths** joins selected open paths when their endpoints match unambiguously within the current tolerance. Selected closed paths keep their geometry and assignments. Review the joined result and assign its operation.
