@@ -128,6 +128,14 @@ For an eligible component, click **Preview boundary repair**. Dashed blue shows 
 
 Branches, large gaps, clipped/dashed/faint paths, mixed styles or vector/raster origins, assigned open guides, compound subpaths and degenerate contours need manual editing. The panel explains the blocker and lists source path IDs and measurements. Select only intended segments for manual Join, or explicitly exclude a construction spur after verifying its purpose, then rescan. Repairs bridge at most 0.2 mm and must preserve source bounds; they do not validate arbitrary self-intersections, remove overruns or guarantee machine-ready contours. Curved-path junction diagnostics use sampled geometry. The scan supports at most 500 open paths and 20,000 sampled points; use manual review for more complex pages.
 
+For a branching boundary, click a red junction marker or choose **Junction to inspect**. Markers also work with keyboard focus and Enter/Space. The connected-path list shows IDs, operations, manual-assignment status and source bounding dimensions. Hover or focus a row to trace its entire path in blue while the other boundary paths fade. This changes selection/highlighting only; the tool does not decide which path is construction geometry.
+
+Activate a row's **Preview exclusion** action to inspect excluding that whole path. Dashed red shows the proposed exclusion; the remaining junction markers show the predicted boundary after it. The summary reports the operation change to Reference and whether the remaining component(s) have repair previews. A path may contain intended cuts, so verify its entire extent against the PDF. Excluding an existing manual operation is allowed only through this explicit action and is called out in the summary; other assignments are unchanged.
+
+**Apply exclusion** assigns the selected path to Reference, omitting it from SVG while retaining its geometry. The boundary scan refreshes automatically and selects the affected remaining component. If the exclusion splits a component, inspect the other remaining components too. A newly available **Preview boundary repair** is a separate action and Undo step. No other paths are excluded or repaired automatically.
+
+**Cancel exclusion** or Escape returns to the junction list without editing. Changing junction, view or selection cancels the preview. Saving and export wait until Apply/Cancel. Applying creates one Undo step and resets raster acknowledgement. Saved projects retain the Reference assignment; Undo history and junction selection are session-only. Rebuilding from source can restore excluded construction paths, so save your project before rebuilding.
+
 A geometry report downloaded after scanning includes the current boundary components and measurements. Scans and diagnostic overlays are temporary; applied geometry and manual operations are retained in saved projects, while Undo history is session-only.
 
 For geometry repairs:

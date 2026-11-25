@@ -1,9 +1,10 @@
+let junctionIndex=null,junctionHoverId=null,junctionFocusId=null,junctionRowsKey=null,exclusionPreview=null;
 let boundaryScan=null,boundaryId=null,boundaryOverlay=false;
 let duplicatePreview=null,duplicateScan=null;
 let repairPreview=null,markPreview=null,markGroups=[],markGroupsKey=null,markDiagnostics=null;
-const pendingPreview=()=>repairPreview||markPreview||duplicatePreview;
-function clearPreviewState(){repairPreview=null;markPreview=null;duplicatePreview=null;boundaryOverlay=false;}
-function resetBoundaryReview(){boundaryScan=null;boundaryId=null;boundaryOverlay=false;}
+const pendingPreview=()=>repairPreview||markPreview||duplicatePreview||exclusionPreview;
+function clearPreviewState(){repairPreview=null;markPreview=null;duplicatePreview=null;exclusionPreview=null;junctionIndex=null;junctionHoverId=null;junctionFocusId=null;boundaryOverlay=false;}
+function resetBoundaryReview(){boundaryScan=null;boundaryId=null;boundaryOverlay=false;junctionIndex=null;junctionHoverId=null;junctionFocusId=null;junctionRowsKey=null;exclusionPreview=null;}
 function resetDuplicateReview(){duplicatePreview=null;duplicateScan=null;}
 function resetMarkGroups(){markPreview=null;markGroups=[];markGroupsKey=null;markDiagnostics=null;}
 const hostedAssets=typeof HOSTED_ASSETS==='undefined'?null:HOSTED_ASSETS;
@@ -46,7 +47,7 @@ function updateExportState(){const audit=currentAudit(),count=audit.unresolved.l
 }
 
 function renderLayers(){const counts=layerCounts();$('layers').replaceChildren();for(const [key,cfg]of Object.entries(LAYERS)){const row=document.createElement('label');row.className='layer';const cb=document.createElement('input');cb.type='checkbox';cb.checked=visible[key];cb.setAttribute('aria-label','Show '+cfg.name);cb.onchange=()=>{visible[key]=cb.checked;renderStage();};const dot=document.createElement('span');dot.className='dot';dot.style.setProperty('--c',cfg.color);const label=document.createElement('span');label.textContent=cfg.name;const count=document.createElement('span');count.className='layer-count';count.textContent=counts[key];row.append(cb,dot,label,count);setHelp(cb,'Show or hide '+cfg.name+' in the preview only. Export inclusion is controlled separately in Export setup.');$('layers').append(makeHelpRow(row,'Show or hide '+cfg.name+' in the preview only. This does not change which paths are exported.','preview visibility for '+cfg.name));}}
-function renderStage(){if(boundaryScan&&boundaryScan.sourceKey!==reviewStateKey(objects))resetBoundaryReview();if(duplicatePreview&&duplicatePreview.beforeKey!==duplicateStateKey(objects))duplicatePreview=null;if(repairPreview&&repairPreview.beforeKey!==reviewStateKey(objects))repairPreview=null;if(markPreview&&markPreview.beforeKey!==markGroupStateKey(objects))markPreview=null;selectionMarquee?.destroy();selectionMarquee=null;updateEditorTools();if(!pageInfo)return;const p=$('paper');p.replaceChildren();p.style.aspectRatio=`${pageInfo.width}/${pageInfo.height}`;const z=Number($('zoom').value)/100;p.style.maxWidth=650*z+'px';p.style.width=(100*z)+'%';
+function renderStage(){if(exclusionPreview&&exclusionPreview.beforeKey!==reviewStateKey(objects))exclusionPreview=null;if(boundaryScan&&boundaryScan.sourceKey!==reviewStateKey(objects))resetBoundaryReview();if(duplicatePreview&&duplicatePreview.beforeKey!==duplicateStateKey(objects))duplicatePreview=null;if(repairPreview&&repairPreview.beforeKey!==reviewStateKey(objects))repairPreview=null;if(markPreview&&markPreview.beforeKey!==markGroupStateKey(objects))markPreview=null;selectionMarquee?.destroy();selectionMarquee=null;updateEditorTools();if(!pageInfo)return;const p=$('paper');p.replaceChildren();p.style.aspectRatio=`${pageInfo.width}/${pageInfo.height}`;const z=Number($('zoom').value)/100;p.style.maxWidth=650*z+'px';p.style.width=(100*z)+'%';
  let boxTool=null;const svg=svgNode('svg',{viewBox:`0 0 ${pageInfo.width} ${pageInfo.height}`,role:'img','aria-label':'Pattern geometry preview'});
  if(mode!=='paths'&&mode!=='mask'&&referenceImage){svg.append(svgNode('image',{href:referenceImage,width:pageInfo.width,height:pageInfo.height,opacity:mode==='overlay'?'0.4':'1'}));}
  if(mode==='mask'&&rasterMask)svg.append(svgNode('image',{href:rasterMask.href,x:rasterMask.region.x,y:rasterMask.region.y,width:rasterMask.region.w,height:rasterMask.region.h}));
@@ -62,18 +63,22 @@ function renderStage(){if(boundaryScan&&boundaryScan.sourceKey!==reviewStateKey(
   svg.append(ci?svgNode('circle',{...attrs,cx:ci.cx,cy:ci.cy,r:Number($('holeDiameter').value)/(2*scale)}):svgNode('path',{...attrs,d:pathData(o.cmds)}));
  }
  if(duplicatePreview&&(mode==='paths'||mode==='overlay'))for(const id of [...duplicatePreview.keepIds,...duplicatePreview.removeIds]){const o=objects.find(o=>o.id===id);if(!o)continue;svg.append(svgNode('path',{d:pathData(o.cmds),class:duplicatePreview.removeIds.includes(id)?'duplicate-remove':'duplicate-keep','aria-label':duplicatePreview.removeIds.includes(id)?'Proposed duplicate removal, not applied':'Retained source path','pointer-events':'none'}));}
- if(boundaryOverlay&&(mode==='paths'||mode==='overlay')){const part=currentBoundary();if(part){
+ if(exclusionPreview&&(mode==='paths'||mode==='overlay'))svg.append(svgNode('path',{d:pathData(exclusionPreview.candidate.cmds),class:'junction-exclusion-preview','aria-label':'Entire path proposed for exclusion from SVG, geometry retained','pointer-events':'none'}));
+ if(boundaryOverlay&&(mode==='paths'||mode==='overlay'))for(const part of exclusionPreview?exclusionPreview.afterComponents:[currentBoundary()].filter(Boolean)){
   for(const gap of part.gaps){svg.append(svgNode('line',{x1:gap.a[0],y1:gap.a[1],x2:gap.b[0],y2:gap.b[1],class:'boundary-gap'}));svg.append(svgNode('circle',{cx:(gap.a[0]+gap.b[0])/2,cy:(gap.a[1]+gap.b[1])/2,r:.85,class:'boundary-gap-marker','aria-label':`Endpoint gap ${gap.distance.toFixed(3)} mm`}));}
-  for(const branch of part.branches)svg.append(svgNode('circle',{cx:branch.point[0],cy:branch.point[1],r:1,class:'boundary-branch','aria-label':'Ambiguous boundary junction'}));
+  for(const [index,branch]of part.branches.entries()){
+   const interactive=!pendingPreview(),marker=svgNode('circle',{cx:branch.point[0],cy:branch.point[1],r:1,class:'boundary-branch'+(interactive&&index===junctionIndex?' active':''),role:interactive?'button':'img',tabindex:interactive?'0':'-1','aria-label':`Junction ${index+1}: ${branch.ids.length} connected paths`,...(interactive?{'aria-pressed':String(index===junctionIndex)}:{})});
+   marker.addEventListener('pointerdown',e=>e.stopPropagation());marker.addEventListener('click',e=>{e.stopPropagation();if(interactive)openJunction(index);});marker.addEventListener('keydown',e=>{if(interactive&&['Enter',' '].includes(e.key)){e.preventDefault();e.stopPropagation();openJunction(index,true);}});svg.append(marker);
+  }
   for(const end of part.freeEnds)svg.append(svgNode('circle',{cx:end.point[0],cy:end.point[1],r:.65,class:'boundary-free','aria-label':'Free boundary endpoint'}));
- }}
+ }
  if(measurePoints.length){svg.append(svgNode('circle',{cx:measurePoints[0][0],cy:measurePoints[0][1],r:1,fill:'#235840'}));if(measurePoints.length===2)svg.append(svgNode('line',{x1:measurePoints[0][0],y1:measurePoints[0][1],x2:measurePoints[1][0],y2:measurePoints[1][1],stroke:'#235840','stroke-width':.25,'stroke-dasharray':'1 1'}));}
  svg.addEventListener('click',e=>{
   if(boxTool?.consumeClick())return;
   if(selectRasterMode)return;
   if(measureMode){const q=svg.createSVGPoint();q.x=e.clientX;q.y=e.clientY;const pt=q.matrixTransform(svg.getScreenCTM().inverse());if(measurePoints.length===2)measurePoints=[];measurePoints.push([pt.x,pt.y]);if(measurePoints.length===2){const length=dist(...measurePoints);$('measured').value=length.toFixed(4);$('measureReadout').textContent=`${human(length*scale)} mm output / ${human(length)} mm source`;toast('Distance measured. Enter its known size to calibrate.');}renderStage();return;}
   clearPreviewState();const id=e.target.closest('[data-id]')?.getAttribute('data-id');if(id)select(id,e.shiftKey);else {if(!e.shiftKey)selected.clear();renderSelection();renderStage();renderList();}
- });wireRasterSelection(svg);boxTool=wireManualSelection(svg);selectionMarquee=boxTool;p.append(svg);$('viewSummary').textContent=`${human(pageInfo.width*scale)} × ${human(pageInfo.height*scale)} mm page · ${objects.length} objects`;}
+ });wireRasterSelection(svg);boxTool=wireManualSelection(svg);selectionMarquee=boxTool;p.append(svg);updateJunctionHighlight();$('viewSummary').textContent=`${human(pageInfo.width*scale)} × ${human(pageInfo.height*scale)} mm page · ${objects.length} objects`;}
 function updateEditorTools(){const active=!!pageInfo&&!measureMode&&!selectRasterMode&&(mode==='paths'||mode==='overlay');$('selectTool').disabled=!pageInfo;$('selectTool').classList.toggle('primary',active);$('selectTool').setAttribute('aria-pressed',String(active));$('measureTool').setAttribute('aria-pressed',String(measureMode));$('stage').classList.toggle('box-select-ready',active);}
 function previewSelectionBounds(o){const ci=o.layer==='holes'&&$('resizeHoles').checked?circleInfo(o):null;if(ci){const radius=Number($('holeDiameter').value)/(2*scale);if(Number.isFinite(radius)&&radius>0)return {x:ci.cx-radius,y:ci.cy-radius,w:2*radius,h:2*radius};}return o.bbox;}
 function wireManualSelection(svg){
@@ -169,6 +174,37 @@ $('applyDuplicates').onclick=()=>{
 };
 $('cancelDuplicates').onclick=cancelRepairPreview;
 function currentBoundary(){return boundaryScan?.components.find(c=>c.id===boundaryId);}
+function updateJunctionHighlight(){
+ const active=boundaryOverlay&&!pendingPreview()?(junctionHoverId||junctionFocusId):null,ids=new Set(currentBoundary()?.ids||[]);
+ for(const node of $('paper').querySelectorAll('[data-id]')){const id=node.getAttribute('data-id');node.classList.toggle('junction-trace',id===active);node.classList.toggle('junction-context',!!active&&ids.has(id)&&id!==active);}
+}
+function openJunction(index,keyboard=false){
+ const part=currentBoundary();if(!part?.branches[index])return;clearPreviewState();boundaryOverlay=true;junctionIndex=index;selected=new Set(part.branches[index].ids);for(const o of objects)if(selected.has(o.id))visible[o.layer]=true;renderLayers();renderStage();renderSelection();renderList();$('junctionPanel').scrollIntoView?.({block:'nearest',behavior:'smooth'});if(keyboard)$('junctionPaths').children[0]?.focus?.();
+}
+function renderJunctionReview(){
+ const part=currentBoundary(),branch=boundaryOverlay&&part&&Number.isInteger(junctionIndex)?part.branches[junctionIndex]:null;
+ $('junctionPicker').hidden=!part?.branches.length;$('junctionSelect').value=branch?String(junctionIndex):'';$('junctionPanel').hidden=!branch;
+ $('exclusionPreviewPanel').hidden=!exclusionPreview;$('exclusionSummary').textContent=exclusionPreview?.summary||'';$('applyExclusion').disabled=!exclusionPreview;
+ if(!branch){junctionRowsKey=null;return;}
+ $('junctionHeading').textContent=`Junction ${junctionIndex+1}: ${branch.ids.length} connected paths`;
+ const key=boundaryScan.sourceKey+part.id+':'+junctionIndex;
+ if(key!==junctionRowsKey){
+  junctionRowsKey=key;$('junctionPaths').replaceChildren();
+  for(const id of branch.ids){const o=objects.find(o=>o.id===id);if(!o)continue;const row=document.createElement('button');row.className='junction-path';row.setAttribute('data-junction-path',id);row.textContent=`${id} · ${LAYERS[o.layer].name}${o.manualLayer?' · manual':''} · ${o.bbox.w.toFixed(3)} × ${o.bbox.h.toFixed(3)} mm source — Preview exclusion`;row.setAttribute('aria-label',`Preview exclusion of entire path ${id}, ${LAYERS[o.layer].name}${o.manualLayer?', manually assigned':''}, ${o.bbox.w.toFixed(3)} by ${o.bbox.h.toFixed(3)} mm source bounds`);
+   row.onmouseenter=()=>{junctionHoverId=id;updateJunctionHighlight();};row.onmouseleave=()=>{junctionHoverId=null;updateJunctionHighlight();};row.onfocus=()=>{junctionFocusId=id;updateJunctionHighlight();};row.onblur=()=>{junctionFocusId=null;updateJunctionHighlight();};row.onclick=()=>previewConnectedExclusion(id);setHelp(row,'Hover or keyboard-focus to trace this path alone. Activate to preview excluding the entire path from export; geometry is retained and nothing changes until Apply.');$('junctionPaths').append(row);
+  }
+ }
+ for(const row of $('junctionPaths').children)row.disabled=!!pendingPreview();
+}
+function previewConnectedExclusion(pathId){
+ try{const index=junctionIndex,preview=previewJunctionExclusion(objects,boundaryScan,{componentId:boundaryId,junctionIndex:index,pathId,...settings()});clearPreviewState();boundaryOverlay=true;junctionIndex=index;exclusionPreview=preview;selected=new Set(preview.componentIds);renderStage();renderSelection();renderList();$('exclusionPreviewPanel').scrollIntoView?.({block:'nearest',behavior:'smooth'});}catch(error){cancelRepairPreview();toast(error.message);}
+}
+$('junctionSelect').onchange=()=>{const value=$('junctionSelect').value;if(value!=='')openJunction(Number(value));else{clearPreviewState();boundaryOverlay=true;renderStage();renderSelection();renderList();}};
+$('applyExclusion').onclick=()=>{
+ if(!exclusionPreview)return;
+ try{const preview=exclusionPreview,next=applyJunctionExclusion(objects,preview),remaining=preview.componentIds.filter(id=>id!==preview.pathId);checkpoint();objects=next;selected=new Set(remaining);render();refreshBoundaryScan(remaining);toast(`${preview.pathId} excluded from SVG; geometry retained. Boundary rescan complete. Undo restores its previous operation.`);}catch(error){cancelRepairPreview();toast(error.message);}
+};
+$('cancelExclusion').onclick=cancelRepairPreview;
 function renderBoundaryReview(){
  if(boundaryScan&&boundaryScan.sourceKey!==reviewStateKey(objects))resetBoundaryReview();
  $('scanBoundaries').disabled=!pageInfo;$('boundaryControls').hidden=!boundaryScan?.components.length;
@@ -177,16 +213,28 @@ function renderBoundaryReview(){
  const part=currentBoundary(),active=!!(part&&repairPreview&&part.ids.length===repairPreview.ids.length&&part.ids.every(id=>repairPreview.ids.includes(id)));
  $('boundaryInfo').textContent=part?`${part.ids.length} paths · source bounds ${part.bbox.w.toFixed(3)} × ${part.bbox.h.toFixed(3)} mm · ${part.gaps.length} nearby endpoint gaps · ${part.branches.length} branching junctions · ${part.freeEnds.length} free endpoints. ${part.reason}`:'';
  $('boundaryDetails').textContent=part?[`Paths: ${part.ids.join(', ')}`,part.gaps.length?'Endpoint gaps: '+part.gaps.map(g=>g.distance.toFixed(3)+' mm').join(', '):'',part.branches.length?'Junction paths: '+[...new Set(part.branches.flatMap(b=>b.ids))].join(', '):'',part.freeEnds.length?'Free endpoints: '+part.freeEnds.map(e=>`${e.id} at ${e.point[0].toFixed(3)}, ${e.point[1].toFixed(3)} mm`).join('; '):''].filter(Boolean).join('\n'):'';
- $('showBoundary').disabled=!part;$('previewBoundary').disabled=!part?.repairable||!!pendingPreview();$('boundaryPreviewPanel').hidden=!active;$('applyBoundary').disabled=!active;$('boundarySummary').textContent=active?repairPreview.summary:'';
+ $('showBoundary').disabled=!part;$('previewBoundary').disabled=!part?.repairable||!!pendingPreview();$('boundaryPreviewPanel').hidden=!active;$('applyBoundary').disabled=!active;$('boundarySummary').textContent=active?repairPreview.summary:'';renderJunctionReview();
 }
 function showBoundary(){
  const part=currentBoundary();if(!part)return;clearPreviewState();measureMode=false;selectRasterMode=false;measurePoints=[];$('measureTool').classList.remove('primary');$('selectRasterArea').classList.remove('primary');mode='overlay';updateMode();boundaryOverlay=true;selected=new Set(part.ids);for(const o of objects)if(selected.has(o.id))visible[o.layer]=true;renderLayers();renderStage();renderSelection();renderList();focusSelectedGeometry('auto');
 }
+function refreshBoundaryScan(preferredIds=null){
+ clearPreviewState();boundaryScan=findBoundaryIssues(objects,settings());$('boundarySelect').replaceChildren();
+ const ranked=preferredIds?boundaryScan.components.map(c=>({c,count:c.ids.filter(id=>preferredIds.includes(id)).length})).filter(e=>e.count).sort((a,b)=>b.count-a.count):null;
+ boundaryId=preferredIds?ranked[0]?.c.id||null:boundaryScan.components[0]?.id||null;
+ if(!boundaryId&&boundaryScan.components.length){const blank=document.createElement('option');blank.value='';blank.textContent='Choose boundary…';$('boundarySelect').append(blank);}
+ for(const [i,part]of boundaryScan.components.entries()){const option=document.createElement('option');option.value=part.id;option.textContent=`Boundary ${i+1}: ${part.ids.length} paths · ${part.repairable?'preview available':'manual review'}`;$('boundarySelect').append(option);}
+ $('boundarySelect').value=boundaryId||'';populateJunctions();if(boundaryId)showBoundary();else{renderStage();renderSelection();}if(preferredIds)$(boundaryId?'boundaryControls':'boundaryPanel').scrollIntoView?.({block:'nearest',behavior:'smooth'});
+}
+function populateJunctions(){
+ $('junctionSelect').replaceChildren();const empty=document.createElement('option');empty.value='';empty.textContent='Choose junction…';$('junctionSelect').append(empty);
+ for(const [i,branch]of (currentBoundary()?.branches||[]).entries()){const option=document.createElement('option');option.value=String(i);option.textContent=`Junction ${i+1}: ${branch.ids.length} paths`;$('junctionSelect').append(option);}
+}
 $('scanBoundaries').onclick=()=>{
- if(loading||!pageInfo)return;clearPreviewState();
- try{boundaryScan=findBoundaryIssues(objects,settings());$('boundarySelect').replaceChildren();for(const [i,part]of boundaryScan.components.entries()){const option=document.createElement('option');option.value=part.id;option.textContent=`Boundary ${i+1}: ${part.ids.length} paths · ${part.repairable?'preview available':'manual review'}`;$('boundarySelect').append(option);}boundaryId=boundaryScan.components[0]?.id||null;$('boundarySelect').value=boundaryId||'';if(boundaryId)showBoundary();else{renderStage();renderSelection();toast('No unresolved open boundaries found. Assigned open guides are preserved; closed features may still need operation assignment.');}}catch(error){resetBoundaryReview();renderStage();renderSelection();toast(error.message);}
+ if(loading||!pageInfo)return;
+ try{refreshBoundaryScan();if(!boundaryScan.components.length)toast('No unresolved open boundaries found. Assigned open guides are preserved; closed features may still need operation assignment.');}catch(error){resetBoundaryReview();renderStage();renderSelection();toast(error.message);}
 };
-$('boundarySelect').onchange=()=>{boundaryId=$('boundarySelect').value;showBoundary();};$('showBoundary').onclick=showBoundary;
+$('boundarySelect').onchange=()=>{boundaryId=$('boundarySelect').value;populateJunctions();showBoundary();};$('showBoundary').onclick=showBoundary;
 $('previewBoundary').onclick=()=>{
  const part=currentBoundary();if(!part||boundaryScan.sourceKey!==reviewStateKey(objects))return;
  const preview=suggestedRepair(objects,part.targetId,settings());if(!preview){toast(boundaryRepairExplanation(objects,part.targetId,settings()));return;}
@@ -216,7 +264,7 @@ function navigateReview(direction){
  if(mode==='original'||mode==='mask'){mode='overlay';updateMode();}
  $('filter').value='all';select(queue[index].id);focusSelectedGeometry('auto');
 }
-function cancelRepairPreview(){clearPreviewState();renderStage();renderSelection();renderList();}
+function cancelRepairPreview(){const junction=exclusionPreview?{id:boundaryId,index:junctionIndex,pathId:exclusionPreview.pathId}:null;clearPreviewState();if(junction&&boundaryScan?.sourceKey===reviewStateKey(objects)){boundaryId=junction.id;junctionIndex=junction.index;boundaryOverlay=true;}renderStage();renderSelection();renderList();if(junction){[...$('junctionPaths').children].find(r=>r.getAttribute('data-junction-path')===junction.pathId)?.focus?.({preventScroll:true});$('junctionPanel').scrollIntoView?.({block:'nearest',behavior:'smooth'});}}
 $('reviewPrev').onclick=()=>navigateReview(-1);
 $('reviewNext').onclick=()=>navigateReview(1);
 $('previewRepair').onclick=()=>{

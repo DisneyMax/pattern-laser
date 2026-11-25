@@ -19,3 +19,8 @@ button{border-color:var(--control-border)}button:hover{background:var(--hover)}b
 
 .boundary-gap,.boundary-gap-marker,.boundary-free{fill:none;stroke:#d58a13;stroke-width:2px;vector-effect:non-scaling-stroke;pointer-events:none}
 .boundary-gap{stroke-dasharray:3 2}.boundary-free{stroke:#168bd2}.boundary-branch{fill:#cc493c;stroke:#fff;stroke-width:1px;vector-effect:non-scaling-stroke;pointer-events:none}.boundary-details{white-space:pre-line;overflow-wrap:anywhere}
+
+.boundary-branch{pointer-events:all;cursor:pointer}.boundary-branch:focus,.boundary-branch.active{stroke:#168bd2;stroke-width:3px;outline:none}
+.geom.junction-context{opacity:.16;filter:none}.geom.junction-trace{stroke:#168bd2!important;stroke-width:2.5px!important;vector-effect:non-scaling-stroke;filter:none}
+.junction-paths{display:grid;gap:7px}.junction-path{text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.5}.junction-path:focus-visible{outline:2px solid #168bd2;outline-offset:2px}
+.junction-exclusion-preview{fill:none;stroke:#d4543d;stroke-width:2.5px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;pointer-events:none}

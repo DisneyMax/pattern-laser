@@ -10,6 +10,10 @@ export function createHelpButton(text,name='this control'){
 }
 export function makeHelpRow(label,text,name){const row=document.createElement('div');row.className='help-check-row';setHelp(label,text);row.append(label,createHelpButton(text,name));return row;}
 export const CONTROL_HELP={
+ junctionSelect:'Choose a red junction to list its connected paths. You can also click a red marker or activate it with Enter or Space. This changes selection only.',
+ applyExclusion:'Assign the previewed whole path to Reference so it is omitted from SVG export. Geometry is retained. Other paths stay unchanged. Creates one Undo step, resets raster acknowledgement and rescans the affected boundary.',
+ cancelExclusion:'Discard the exclusion preview and return to the junction path list without changing operations or geometry. Escape also cancels.',
+
  scanBoundaries:'Inspect connected open paths containing unresolved boundaries using a fixed 0.2 mm source endpoint limit. Assigned open guides appear only if they meet an unresolved boundary. Show gaps, ambiguous junctions and free endpoints without editing geometry. Disconnected fragments can belong to the same physical piece; compare the PDF.',
  boundarySelect:'Choose a connected boundary component. Its paths are selected and fitted into the preview. Components with branches, unsupported paths, assigned open guides or large gaps require manual editing.',
  showBoundary:'Reveal and fit all paths in this boundary, with orange gap rings, red ambiguous junctions and blue free-end rings. This changes selection only and cancels pending previews.',
