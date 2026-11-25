@@ -47,8 +47,8 @@ test('join preview applies only the proposed component and preserves unrelated o
 
 test('branching paths do not offer a repair that guesses through the junction',async({page})=>{
  await joinFixture(page,{branch:true});await page.locator('#reviewNext').click();
- await expect(page.locator('#reviewExplanation')).toContainText('branching paths');await page.locator('#previewRepair').click();
- await expect(page.locator('#status')).toContainText('No unambiguous small-gap repair');await expect(page.locator('#repairPreviewPanel')).toBeHidden();
+ await expect(page.locator('#reviewExplanation')).toContainText('competing continuations');await page.locator('#previewRepair').click();
+ await expect(page.locator('#status')).toContainText('competing continuations');await expect(page.locator('#repairPreviewPanel')).toBeHidden();
  await expect(page.locator('#reviewCount')).toHaveText('1 / 3');await expect(page.locator('#export')).toBeDisabled();
 });
 

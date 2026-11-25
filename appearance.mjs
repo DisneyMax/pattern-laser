@@ -10,6 +10,13 @@ export function createHelpButton(text,name='this control'){
 }
 export function makeHelpRow(label,text,name){const row=document.createElement('div');row.className='help-check-row';setHelp(label,text);row.append(label,createHelpButton(text,name));return row;}
 export const CONTROL_HELP={
+ scanBoundaries:'Inspect connected open paths containing unresolved boundaries using a fixed 0.2 mm source endpoint limit. Assigned open guides appear only if they meet an unresolved boundary. Show gaps, ambiguous junctions and free endpoints without editing geometry. Disconnected fragments can belong to the same physical piece; compare the PDF.',
+ boundarySelect:'Choose a connected boundary component. Its paths are selected and fitted into the preview. Components with branches, unsupported paths, assigned open guides or large gaps require manual editing.',
+ showBoundary:'Reveal and fit all paths in this boundary, with orange gap rings, red ambiguous junctions and blue free-end rings. This changes selection only and cancels pending previews.',
+ previewBoundary:'Preview a bounded closure or unique join into one closed contour. Source bounds and unrelated operations are preserved; global cleanup tolerance stays unchanged. Inspect the dashed contour against the PDF.',
+ applyBoundary:'Apply only the previewed repair in one Undo step. Raster geometry needs a fresh overlay and scale acknowledgement. The repaired boundary is explicitly assigned as an outer or internal cut.',
+ cancelBoundary:'Discard the boundary repair preview without editing geometry. Escape also cancels.',
+
  duplicateManual:'Off by default: every manually assigned path stays. Enable to remove redundant manual copies only when operations and styles match; one original manual path and its operation are retained per group. Rescan and inspect the preview. Conflicting operations remain manual.',
  findDuplicates:'Scan current paths without rebuilding cleanup. Exact command copies and near-overlapping round paths are separate; conflicting operations or styles stay manual. Nothing is removed by scanning.',
  duplicateKind:'Exact matches require identical source commands. Near matches compare circular source paths within small center and diameter tolerances; they can represent intentional geometry and always need inspection.',

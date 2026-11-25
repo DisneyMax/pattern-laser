@@ -39,7 +39,7 @@ The source modules, `index.template.html`, `styles.css`, `theme-init.js`, build 
 
 ## Validation and limits
 
-The current default suite contains 215 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
+The current default suite contains 230 automated geometry, raster, download, UI-controller, appearance, box-selection and runtime-asset checks. Optional real-pattern fixtures can be supplied through the environment variables documented in the test files. Automated state tests use DOM doubles. User testing confirmed that 4–5 exports looked correct in xTool Studio, with correct physical dimensions for patterns containing a 1-inch calibration square. Those manual results are not automated fixtures; Chromium UI automation now covers the main hosted and offline workflows; machine processing remains unverified.
 
 Raster tracing approximates the printed design. Review the overlay, operation assignments and physical scale before exporting. SVG colours do not include laser power, speed or processing assignments. This version does not assemble tiled sheets, nest pieces or calculate kerf.
 
@@ -73,7 +73,7 @@ npm run test:ui
 
 ## Playwright UI regression tests
 
-The 47 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, round-mark group preview/apply/Undo, protected manual assignments, output hole resizing, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
+The 53 Chromium scenarios exercise the built site at `/pattern-laser/`, matching the deployed project path. They cover real PDF/sample import and worker loading, reviewed YOMMY SVG contours and scale, calibration/report downloads, pointer box selection and Shift-click, cancellation, bulk edits and Undo, project save/reopen, image-only PDF tracing and its review gate, physical calibration, round-mark group preview/apply/Undo, protected manual assignments, output hole resizing, preview/export inclusion, persisted themes and hover preferences, delayed and keyboard help, download/guide navigation on a narrow viewport, failed sample requests, and standalone/offline operation.
 
 ```sh
 npm ci
@@ -97,6 +97,22 @@ For an eligible open path, **Preview suggested repair** shows a dashed blue cont
 Inspect the overlay and resulting operation, then choose **Apply repair**, **Cancel preview**, or Escape. Applying records one Undo step and invalidates raster overlay/scale acknowledgement. Changing geometry, tolerance, view or editing tools discards the pending preview. Stale previews cannot be applied.
 
 Branches, clipped/unsupported paths, ambiguous connections, large gaps and closed unassigned features remain manual decisions. No paths are automatically excluded. Repairs preserve unrelated assignments: after joining a new outer contour, check the operations of its internal features. Preview does not validate arbitrary self-intersections or guarantee cutting suitability.
+
+## Open-boundary inspection
+
+Use **Inspect open boundaries** below the object list to group unresolved open paths by connected boundary. The scan does not edit geometry. Choose a **Boundary component** or click **Show boundary** to select, reveal and fit its paths into the preview:
+
+- **Orange rings** locate nearby endpoint gaps; the panel reports their distances in source millimetres.
+- **Red dots** mark ambiguous endpoint junctions or endpoints meeting another path's sampled interior.
+- **Blue rings** mark free endpoints without a continuation within the 0.2 mm source limit.
+
+Standalone assigned open guides are omitted from this scan. If an assigned guide meets an unresolved boundary, it is included for context and blocks automatic joining so its operation stays protected. Closed features needing operation assignment remain in Review paths. Connected components are not guaranteed to correspond to entire physical pieces; disconnected fragments may belong together, so compare the PDF.
+
+For an eligible component, click **Preview boundary repair**. Dashed blue shows the proposed closed contour over the original paths. The summary reports the resulting cut operation, largest bridged gap and unchanged source bounding dimensions. Inspect the result, then **Apply boundary repair** or **Cancel repair**. Each application creates one Undo step and requires fresh raster acknowledgement. Global join tolerance is unchanged. Save a project to retain repairs; switching PDF pages or rebuilding from source can discard edits.
+
+Branches, large gaps, clipped/dashed/faint paths, mixed styles or vector/raster origins, assigned open guides, compound subpaths and degenerate contours need manual editing. The panel explains the blocker and lists source path IDs and measurements. Select only intended segments for manual Join, or explicitly exclude a construction spur after verifying its purpose, then rescan. Repairs bridge at most 0.2 mm and must preserve source bounds; they do not validate arbitrary self-intersections, remove overruns or guarantee machine-ready contours. Curved-path junction diagnostics use sampled geometry. The scan supports at most 500 open paths and 20,000 sampled points; use manual review for more complex pages.
+
+A geometry report downloaded after scanning includes the current boundary components and measurements. Scans and diagnostic overlays are temporary; applied geometry and manual operations are retained in saved projects, while Undo history is session-only.
 
 ## Round-mark group review
 

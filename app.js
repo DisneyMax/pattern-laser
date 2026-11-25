@@ -1,7 +1,9 @@
+let boundaryScan=null,boundaryId=null,boundaryOverlay=false;
 let duplicatePreview=null,duplicateScan=null;
 let repairPreview=null,markPreview=null,markGroups=[],markGroupsKey=null,markDiagnostics=null;
 const pendingPreview=()=>repairPreview||markPreview||duplicatePreview;
-function clearPreviewState(){repairPreview=null;markPreview=null;duplicatePreview=null;}
+function clearPreviewState(){repairPreview=null;markPreview=null;duplicatePreview=null;boundaryOverlay=false;}
+function resetBoundaryReview(){boundaryScan=null;boundaryId=null;boundaryOverlay=false;}
 function resetDuplicateReview(){duplicatePreview=null;duplicateScan=null;}
 function resetMarkGroups(){markPreview=null;markGroups=[];markGroupsKey=null;markDiagnostics=null;}
 const hostedAssets=typeof HOSTED_ASSETS==='undefined'?null:HOSTED_ASSETS;
@@ -24,7 +26,7 @@ const downloadManager=createDownloadManager({document,window,navigator,URL,Blob}
 function download(name,content,type='image/svg+xml'){downloadManager.prepare(name,content,type);setStatus('File ready: '+name);}
 if(location.protocol==='https:'||location.protocol==='http:'){$('downloadBrowserLink').href=location.href;$('downloadBrowserLink').hidden=false;}
 function checkpoint(){clearPreviewState();history.push({objects:structuredClone(objects),raw:structuredClone(raw),scale,stats:structuredClone(stats),conversionMode,rasterBatches:structuredClone(rasterBatches),rasterReviewed,rasterRegion:structuredClone(rasterRegion)});if(rasterBatches.length)rasterReviewed=false;if(history.length>25)history.shift();$('undo').disabled=false;}
-function resetSelection(){clearPreviewState();resetMarkGroups();resetDuplicateReview();selected.clear();measurePoints=[];}
+function resetSelection(){clearPreviewState();resetMarkGroups();resetDuplicateReview();resetBoundaryReview();selected.clear();measurePoints=[];}
 function settings(){return {dedupe:$('dedupe').checked,join:$('join').checked,tolerance:Number($('tolerance').value)};}
 function rebuild(record=true){if(!raw.length)return;if(record)checkpoint();const result=prepare(raw,settings());objects=result.objects;stats=result.stats;resetSelection();render();toast('Cleanup rebuilt from original vectors. Manual assignments were reset.');}
 function currentOptions(){const diameter=$('resizeHoles').checked?Number($('holeDiameter').value):null;if(diameter!==null&&(!Number.isFinite(diameter)||diameter<.25||diameter>5))throw new Error('Choose a hole diameter from 0.25 to 5 mm.');return {width:pageInfo.width,height:pageInfo.height,scale,holeDiameter:diameter,crop:$('exportSize').value==='crop',title:fileName+' · page '+pageInfo.number,layers:[...exportLayers]};}
@@ -44,7 +46,7 @@ function updateExportState(){const audit=currentAudit(),count=audit.unresolved.l
 }
 
 function renderLayers(){const counts=layerCounts();$('layers').replaceChildren();for(const [key,cfg]of Object.entries(LAYERS)){const row=document.createElement('label');row.className='layer';const cb=document.createElement('input');cb.type='checkbox';cb.checked=visible[key];cb.setAttribute('aria-label','Show '+cfg.name);cb.onchange=()=>{visible[key]=cb.checked;renderStage();};const dot=document.createElement('span');dot.className='dot';dot.style.setProperty('--c',cfg.color);const label=document.createElement('span');label.textContent=cfg.name;const count=document.createElement('span');count.className='layer-count';count.textContent=counts[key];row.append(cb,dot,label,count);setHelp(cb,'Show or hide '+cfg.name+' in the preview only. Export inclusion is controlled separately in Export setup.');$('layers').append(makeHelpRow(row,'Show or hide '+cfg.name+' in the preview only. This does not change which paths are exported.','preview visibility for '+cfg.name));}}
-function renderStage(){if(duplicatePreview&&duplicatePreview.beforeKey!==duplicateStateKey(objects))duplicatePreview=null;if(repairPreview&&repairPreview.beforeKey!==reviewStateKey(objects))repairPreview=null;if(markPreview&&markPreview.beforeKey!==markGroupStateKey(objects))markPreview=null;selectionMarquee?.destroy();selectionMarquee=null;updateEditorTools();if(!pageInfo)return;const p=$('paper');p.replaceChildren();p.style.aspectRatio=`${pageInfo.width}/${pageInfo.height}`;const z=Number($('zoom').value)/100;p.style.maxWidth=650*z+'px';p.style.width=(100*z)+'%';
+function renderStage(){if(boundaryScan&&boundaryScan.sourceKey!==reviewStateKey(objects))resetBoundaryReview();if(duplicatePreview&&duplicatePreview.beforeKey!==duplicateStateKey(objects))duplicatePreview=null;if(repairPreview&&repairPreview.beforeKey!==reviewStateKey(objects))repairPreview=null;if(markPreview&&markPreview.beforeKey!==markGroupStateKey(objects))markPreview=null;selectionMarquee?.destroy();selectionMarquee=null;updateEditorTools();if(!pageInfo)return;const p=$('paper');p.replaceChildren();p.style.aspectRatio=`${pageInfo.width}/${pageInfo.height}`;const z=Number($('zoom').value)/100;p.style.maxWidth=650*z+'px';p.style.width=(100*z)+'%';
  let boxTool=null;const svg=svgNode('svg',{viewBox:`0 0 ${pageInfo.width} ${pageInfo.height}`,role:'img','aria-label':'Pattern geometry preview'});
  if(mode!=='paths'&&mode!=='mask'&&referenceImage){svg.append(svgNode('image',{href:referenceImage,width:pageInfo.width,height:pageInfo.height,opacity:mode==='overlay'?'0.4':'1'}));}
  if(mode==='mask'&&rasterMask)svg.append(svgNode('image',{href:rasterMask.href,x:rasterMask.region.x,y:rasterMask.region.y,width:rasterMask.region.w,height:rasterMask.region.h}));
@@ -60,6 +62,11 @@ function renderStage(){if(duplicatePreview&&duplicatePreview.beforeKey!==duplica
   svg.append(ci?svgNode('circle',{...attrs,cx:ci.cx,cy:ci.cy,r:Number($('holeDiameter').value)/(2*scale)}):svgNode('path',{...attrs,d:pathData(o.cmds)}));
  }
  if(duplicatePreview&&(mode==='paths'||mode==='overlay'))for(const id of [...duplicatePreview.keepIds,...duplicatePreview.removeIds]){const o=objects.find(o=>o.id===id);if(!o)continue;svg.append(svgNode('path',{d:pathData(o.cmds),class:duplicatePreview.removeIds.includes(id)?'duplicate-remove':'duplicate-keep','aria-label':duplicatePreview.removeIds.includes(id)?'Proposed duplicate removal, not applied':'Retained source path','pointer-events':'none'}));}
+ if(boundaryOverlay&&(mode==='paths'||mode==='overlay')){const part=currentBoundary();if(part){
+  for(const gap of part.gaps){svg.append(svgNode('line',{x1:gap.a[0],y1:gap.a[1],x2:gap.b[0],y2:gap.b[1],class:'boundary-gap'}));svg.append(svgNode('circle',{cx:(gap.a[0]+gap.b[0])/2,cy:(gap.a[1]+gap.b[1])/2,r:.85,class:'boundary-gap-marker','aria-label':`Endpoint gap ${gap.distance.toFixed(3)} mm`}));}
+  for(const branch of part.branches)svg.append(svgNode('circle',{cx:branch.point[0],cy:branch.point[1],r:1,class:'boundary-branch','aria-label':'Ambiguous boundary junction'}));
+  for(const end of part.freeEnds)svg.append(svgNode('circle',{cx:end.point[0],cy:end.point[1],r:.65,class:'boundary-free','aria-label':'Free boundary endpoint'}));
+ }}
  if(measurePoints.length){svg.append(svgNode('circle',{cx:measurePoints[0][0],cy:measurePoints[0][1],r:1,fill:'#235840'}));if(measurePoints.length===2)svg.append(svgNode('line',{x1:measurePoints[0][0],y1:measurePoints[0][1],x2:measurePoints[1][0],y2:measurePoints[1][1],stroke:'#235840','stroke-width':.25,'stroke-dasharray':'1 1'}));}
  svg.addEventListener('click',e=>{
   if(boxTool?.consumeClick())return;
@@ -161,8 +168,33 @@ $('applyDuplicates').onclick=()=>{
  try{const preview=duplicatePreview,next=applyDuplicateRemoval(objects,preview);checkpoint();objects=next;stats.duplicatePaths=(stats.duplicatePaths||0)+preview.removeIds.length;selected=new Set(preview.keepIds);render();toast(`${preview.removeIds.length} duplicate paths removed. Retained source paths are unchanged. Undo restores removals. Rebuilding cleanup or retracing can reintroduce source copies.`);}catch(error){cancelRepairPreview();toast(error.message);}
 };
 $('cancelDuplicates').onclick=cancelRepairPreview;
+function currentBoundary(){return boundaryScan?.components.find(c=>c.id===boundaryId);}
+function renderBoundaryReview(){
+ if(boundaryScan&&boundaryScan.sourceKey!==reviewStateKey(objects))resetBoundaryReview();
+ $('scanBoundaries').disabled=!pageInfo;$('boundaryControls').hidden=!boundaryScan?.components.length;
+ $('boundaryCount').textContent=boundaryScan?`${boundaryScan.components.length} components`:'Not scanned';
+ $('boundaryScanInfo').textContent=boundaryScan?`${boundaryScan.components.length} unresolved open-boundary components; ${boundaryScan.components.filter(c=>c.repairable).length} have a bounded repair preview. Separate disconnected fragments may belong to the same physical piece; use the PDF to verify.`:'';
+ const part=currentBoundary(),active=!!(part&&repairPreview&&part.ids.length===repairPreview.ids.length&&part.ids.every(id=>repairPreview.ids.includes(id)));
+ $('boundaryInfo').textContent=part?`${part.ids.length} paths · source bounds ${part.bbox.w.toFixed(3)} × ${part.bbox.h.toFixed(3)} mm · ${part.gaps.length} nearby endpoint gaps · ${part.branches.length} branching junctions · ${part.freeEnds.length} free endpoints. ${part.reason}`:'';
+ $('boundaryDetails').textContent=part?[`Paths: ${part.ids.join(', ')}`,part.gaps.length?'Endpoint gaps: '+part.gaps.map(g=>g.distance.toFixed(3)+' mm').join(', '):'',part.branches.length?'Junction paths: '+[...new Set(part.branches.flatMap(b=>b.ids))].join(', '):'',part.freeEnds.length?'Free endpoints: '+part.freeEnds.map(e=>`${e.id} at ${e.point[0].toFixed(3)}, ${e.point[1].toFixed(3)} mm`).join('; '):''].filter(Boolean).join('\n'):'';
+ $('showBoundary').disabled=!part;$('previewBoundary').disabled=!part?.repairable||!!pendingPreview();$('boundaryPreviewPanel').hidden=!active;$('applyBoundary').disabled=!active;$('boundarySummary').textContent=active?repairPreview.summary:'';
+}
+function showBoundary(){
+ const part=currentBoundary();if(!part)return;clearPreviewState();measureMode=false;selectRasterMode=false;measurePoints=[];$('measureTool').classList.remove('primary');$('selectRasterArea').classList.remove('primary');mode='overlay';updateMode();boundaryOverlay=true;selected=new Set(part.ids);for(const o of objects)if(selected.has(o.id))visible[o.layer]=true;renderLayers();renderStage();renderSelection();renderList();focusSelectedGeometry('auto');
+}
+$('scanBoundaries').onclick=()=>{
+ if(loading||!pageInfo)return;clearPreviewState();
+ try{boundaryScan=findBoundaryIssues(objects,settings());$('boundarySelect').replaceChildren();for(const [i,part]of boundaryScan.components.entries()){const option=document.createElement('option');option.value=part.id;option.textContent=`Boundary ${i+1}: ${part.ids.length} paths · ${part.repairable?'preview available':'manual review'}`;$('boundarySelect').append(option);}boundaryId=boundaryScan.components[0]?.id||null;$('boundarySelect').value=boundaryId||'';if(boundaryId)showBoundary();else{renderStage();renderSelection();toast('No unresolved open boundaries found. Assigned open guides are preserved; closed features may still need operation assignment.');}}catch(error){resetBoundaryReview();renderStage();renderSelection();toast(error.message);}
+};
+$('boundarySelect').onchange=()=>{boundaryId=$('boundarySelect').value;showBoundary();};$('showBoundary').onclick=showBoundary;
+$('previewBoundary').onclick=()=>{
+ const part=currentBoundary();if(!part||boundaryScan.sourceKey!==reviewStateKey(objects))return;
+ const preview=suggestedRepair(objects,part.targetId,settings());if(!preview){toast(boundaryRepairExplanation(objects,part.targetId,settings()));return;}
+ showBoundary();repairPreview=preview;boundaryOverlay=true;renderStage();renderSelection();renderList();
+};
+$('applyBoundary').onclick=()=>$('applyRepair').onclick();$('cancelBoundary').onclick=cancelRepairPreview;
 function currentReviewItems(){const audit=currentAudit();return reviewItems(objects,audit);}
-function renderReview(){renderMarkReview();renderDuplicateReview();
+function renderReview(){renderMarkReview();renderDuplicateReview();renderBoundaryReview();
  const queue=currentReviewItems();
  const active=repairPreview?queue.find(o=>o.id===repairPreview.targetId):selected.size===1?queue.find(o=>selected.has(o.id)):null;
  const index=active?queue.findIndex(o=>o.id===active.id):-1;
@@ -190,7 +222,7 @@ $('reviewNext').onclick=()=>navigateReview(1);
 $('previewRepair').onclick=()=>{
  clearPreviewState();const active=currentReviewItems().find(o=>selected.size===1&&selected.has(o.id));if(!active)return;
  const suggestion=suggestedRepair(objects,active.id,settings());
- if(!suggestion){toast('No unambiguous small-gap repair is available. Inspect the branches or assign/exclude this feature manually.');return;}
+ if(!suggestion){toast(boundaryRepairExplanation(objects,active.id,settings()));return;}
  measureMode=false;selectRasterMode=false;measurePoints=[];$('measureTool').classList.remove('primary');$('selectRasterArea').classList.remove('primary');mode='overlay';updateMode();
  repairPreview=suggestion;selected=new Set(suggestion.ids);for(const o of objects)if(selected.has(o.id))visible[o.layer]=true;
  renderLayers();renderStage();renderSelection();renderList();
@@ -207,7 +239,7 @@ function render(){updateRasterUI();renderLayers();renderStage();renderSelection(
 async function loadPDF(bytes,name){if(loading)return;if(pendingPreview())cancelRepairPreview();const token=++sourceToken;busy('Opening PDF and reading page geometry…');try{
  const next=await pdfjs.getDocument({data:bytes,isEvalSupported:false,stopAtErrors:false}).promise;if(token!==sourceToken){await next.destroy();return;}if(doc)await doc.destroy();doc=next;fileName=name;history=[];scale=1;raw=[];objects=[];pageInfo=null;referenceImage='';selected.clear();$('fileName').textContent=name;$('page').replaceChildren();for(let i=1;i<=doc.numPages;i++){const option=document.createElement('option');option.value=i;option.textContent='Page '+i;$('page').append(option);}$('page').disabled=doc.numPages<2;await readPage(1);toast(conversionMode==='raster'?'Image-based PDF loaded. Select a pattern area, then click Trace area.':'PDF loaded. Review the amber paths and reference artwork.');
  }catch(e){console.error(e);toast('Could not load PDF: '+e.message);}finally{busy('');}}
-async function readPage(number){clearPreviewState();resetMarkGroups();resetDuplicateReview();const p=await doc.getPage(number),vp=p.getViewport({scale:1});const extracted=extract(await p.getOperatorList(),vp,pdfjs.OPS);sourceFingerprint=doc.fingerprints?.[0]||null;vectorRaw=extracted.objects;raw=vectorRaw;warnings=extracted.warnings.filter(w=>!w.includes('Scanned PDFs need')).map(w=>w.startsWith('Raster images detected:')?'Image content detected. Use Raster trace mode to select and convert image areas.':w);rasterBatches=[];rasterCanvas=null;rasterMask=null;rasterRegion=null;rasterReviewed=false;rasterCounter=0;selectRasterMode=false;conversionMode=!raw.length?'raster':'vector';if(conversionMode==='raster')raw=[];pageInfo={width:vp.width*MM,height:vp.height*MM,number};scale=1;history=[];selected.clear();measurePoints=[];
+async function readPage(number){clearPreviewState();resetMarkGroups();resetDuplicateReview();resetBoundaryReview();const p=await doc.getPage(number),vp=p.getViewport({scale:1});const extracted=extract(await p.getOperatorList(),vp,pdfjs.OPS);sourceFingerprint=doc.fingerprints?.[0]||null;vectorRaw=extracted.objects;raw=vectorRaw;warnings=extracted.warnings.filter(w=>!w.includes('Scanned PDFs need')).map(w=>w.startsWith('Raster images detected:')?'Image content detected. Use Raster trace mode to select and convert image areas.':w);rasterBatches=[];rasterCanvas=null;rasterMask=null;rasterRegion=null;rasterReviewed=false;rasterCounter=0;selectRasterMode=false;conversionMode=!raw.length?'raster':'vector';if(conversionMode==='raster')raw=[];pageInfo={width:vp.width*MM,height:vp.height*MM,number};scale=1;history=[];selected.clear();measurePoints=[];
  // Read operators before rendering: PDF.js can replace its packed data with Path2D while rendering.
  const maxSide=1500,renderScale=Math.min(2,maxSide/Math.max(vp.width,vp.height));const canvas=document.createElement('canvas'),rv=p.getViewport({scale:renderScale});canvas.width=Math.ceil(rv.width);canvas.height=Math.ceil(rv.height);
  try{await p.render({canvasContext:canvas.getContext('2d'),viewport:rv,background:'white'}).promise;referenceImage=canvas.toDataURL('image/png');}catch(e){referenceImage='';warnings.push('PDF reference preview could not render: '+e.message);}
@@ -215,7 +247,7 @@ async function readPage(number){clearPreviewState();resetMarkGroups();resetDupli
 function updateMode(){const hadPreview=!!pendingPreview();clearPreviewState();for(const [id,val]of [['viewPaths','paths'],['viewOverlay','overlay'],['viewOriginal','original'],['viewMask','mask']])$(id).classList.toggle('active',mode===val);if(hadPreview)renderReview();}
 function assign(layer){if(!selected.size||!LAYERS[layer])return;checkpoint();for(const o of objects)if(selected.has(o.id)){o.layer=layer;o.manualLayer=layer;o.reason='Manually assigned';}render();}
 function decode64(s){const b=atob(s),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
-function report(){const sourceBounds=selectedBounds(objects.filter(o=>exportLayers.has(o.layer)));return {utility:'Pattern / laser 0.4.0',source:fileName,sourceFingerprint,page:pageInfo,conversionMode,rasterTracing:rasterBatches.map(b=>({id:b.id,region:b.region,settings:b.settings,stats:b.stats})),outputScale:scale,cleanup:settings(),stats,counts:layerCounts(),exportAudit:currentAudit(),exportLayers:[...exportLayers],holeResizing:$('resizeHoles').checked?Number($('holeDiameter').value):null,outputBoundsMm:Object.fromEntries(Object.entries(sourceBounds).map(([k,v])=>[k,v*scale])),warnings,unresolved:objects.filter(o=>o.layer==='unassigned').map(o=>({id:o.id,bbox:o.bbox,reason:o.reason})),paths:objects.map(o=>({id:o.id,sourceIds:o.sourceIds,layer:o.layer,closed:o.closed,boundsMm:o.bbox,reason:o.reason,detectedRole:o.autoRole||null,possiblePatternFeature:!!o.omissionCandidate}))};}
+function report(){const sourceBounds=selectedBounds(objects.filter(o=>exportLayers.has(o.layer)));return {utility:'Pattern / laser 0.4.0',source:fileName,sourceFingerprint,page:pageInfo,conversionMode,rasterTracing:rasterBatches.map(b=>({id:b.id,region:b.region,settings:b.settings,stats:b.stats})),outputScale:scale,cleanup:settings(),stats,counts:layerCounts(),boundaryReview:boundaryScan&&boundaryScan.sourceKey===reviewStateKey(objects)?{limit:boundaryScan.limit,components:boundaryScan.components}:null,exportAudit:currentAudit(),exportLayers:[...exportLayers],holeResizing:$('resizeHoles').checked?Number($('holeDiameter').value):null,outputBoundsMm:Object.fromEntries(Object.entries(sourceBounds).map(([k,v])=>[k,v*scale])),warnings,unresolved:objects.filter(o=>o.layer==='unassigned').map(o=>({id:o.id,bbox:o.bbox,reason:o.reason})),paths:objects.map(o=>({id:o.id,sourceIds:o.sourceIds,layer:o.layer,closed:o.closed,boundsMm:o.bbox,reason:o.reason,detectedRole:o.autoRole||null,possiblePatternFeature:!!o.omissionCandidate}))};}
 function updateRasterUI(){
  $('attachRasterSource').hidden=!!doc||!rasterBatches.length;$('conversionMode').value=conversionMode;$('conversionMode').disabled=!pageInfo;$('rasterPanel').hidden=conversionMode!=='raster';
  $('selectRasterArea').disabled=!pageInfo||!doc;$('previewRaster').disabled=!pageInfo||!doc||!rasterRegion;$('traceRaster').disabled=!pageInfo||!doc||!rasterRegion;$('clearRaster').disabled=!rasterBatches.length;

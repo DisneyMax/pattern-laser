@@ -116,6 +116,20 @@ Manual paths are protected by default. **Allow matching manual copies** permits 
 
 This review scans up to 20,000 current paths and compares up to 3,000 round paths per page. A successful scan is not a guarantee that every possible repeated laser path has been detected.
 
+Use **Inspect open boundaries** below the object list to group unresolved open paths by connected boundary. The scan does not edit geometry. Choose a **Boundary component** or click **Show boundary** to select, reveal and fit its paths into the preview:
+
+- **Orange rings** locate nearby endpoint gaps; the panel reports their distances in source millimetres.
+- **Red dots** mark ambiguous endpoint junctions or endpoints meeting another path's sampled interior.
+- **Blue rings** mark free endpoints without a continuation within the 0.2 mm source limit.
+
+Standalone assigned open guides are omitted from this scan. If an assigned guide meets an unresolved boundary, it is included for context and blocks automatic joining so its operation stays protected. Closed features needing operation assignment remain in Review paths. Connected components are not guaranteed to correspond to entire physical pieces; disconnected fragments may belong together, so compare the PDF.
+
+For an eligible component, click **Preview boundary repair**. Dashed blue shows the proposed closed contour over the original paths. The summary reports the resulting cut operation, largest bridged gap and unchanged source bounding dimensions. Inspect the result, then **Apply boundary repair** or **Cancel repair**. Each application creates one Undo step and requires fresh raster acknowledgement. Global join tolerance is unchanged. Save a project to retain repairs; switching PDF pages or rebuilding from source can discard edits.
+
+Branches, large gaps, clipped/dashed/faint paths, mixed styles or vector/raster origins, assigned open guides, compound subpaths and degenerate contours need manual editing. The panel explains the blocker and lists source path IDs and measurements. Select only intended segments for manual Join, or explicitly exclude a construction spur after verifying its purpose, then rescan. Repairs bridge at most 0.2 mm and must preserve source bounds; they do not validate arbitrary self-intersections, remove overruns or guarantee machine-ready contours. Curved-path junction diagnostics use sampled geometry. The scan supports at most 500 open paths and 20,000 sampled points; use manual review for more complex pages.
+
+A geometry report downloaded after scanning includes the current boundary components and measurements. Scans and diagnostic overlays are temporary; applied geometry and manual operations are retained in saved projects, while Undo history is session-only.
+
 For geometry repairs:
 
 - **Join selected paths** joins selected open paths when their endpoints match unambiguously within the current tolerance. Selected closed paths keep their geometry and assignments. Review the joined result and assign its operation.
