@@ -1,4 +1,4 @@
-import {prepare,refresh,samples,selectedBounds} from './geometry.mjs';
+import {prepare,refresh,samples,selectedBounds,LAYERS} from './geometry.mjs';
 
 const reviewEnds=o=>[o.cmds[0].slice(-2),o.cmds.at(-1).slice(-2)];
 const reviewGap=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
@@ -103,4 +103,21 @@ export function applySuggestedRepair(objects,preview){
  const fresh=suggestedRepair(objects,preview.targetId,{tolerance:preview.tolerance??.03});
  if(!fresh||['ids','objects','kind','gap','joins'].some(key=>JSON.stringify(fresh[key])!==JSON.stringify(preview[key])))throw new Error('Repair preview changed. Preview the repair again.');
  const ids=new Set(fresh.ids);return [...objects.filter(o=>!ids.has(o.id)),...structuredClone(fresh.objects)];
+}
+
+export function previewJunctionExclusion(objects,scan,{componentId,junctionIndex,pathId,tolerance=.03}={}){
+ if(!scan||scan.sourceKey!==reviewStateKey(objects))throw new Error('Boundary geometry changed. Inspect open boundaries again.');
+ const current=findBoundaryIssues(objects,{tolerance}),part=current.components.find(c=>c.id===componentId);
+ if(!part||!Number.isInteger(junctionIndex)||junctionIndex<0||!part.branches[junctionIndex]?.ids.includes(pathId))throw new Error('Choose a path connected to this junction.');
+ const original=objects.find(o=>o.id===pathId);
+ if(!original||original.closed||original.layer==='reference')throw new Error('Only a connected open path can be excluded here.');
+ const candidate={...structuredClone(original),layer:'reference',manualLayer:'reference',reason:'Construction path explicitly excluded after junction preview'};
+ const next=objects.map(o=>o.id===pathId?candidate:o),remainingIds=part.ids.filter(id=>id!==pathId),after=findBoundaryIssues(next,{tolerance}),affected=after.components.filter(c=>c.ids.some(id=>remainingIds.includes(id)));
+ return {beforeKey:reviewStateKey(objects),componentId,junctionIndex,pathId,tolerance,ids:[pathId],componentIds:[...part.ids],candidate,afterComponents:affected,summary:`Exclude the entire ${pathId} path (${original.bbox.w.toFixed(3)} × ${original.bbox.h.toFixed(3)} mm source bounds) from SVG export. Operation ${LAYERS[original.layer]?.name||original.layer} → Reference. Geometry is retained.${original.manualLayer?' This replaces its existing manual operation.':''} Other paths and assignments stay unchanged. After exclusion: ${affected.length} affected unresolved boundary components, ${affected.filter(c=>c.repairable).length} with a repair preview. Verify that this path is construction geometry before applying.`};
+}
+export function applyJunctionExclusion(objects,preview){
+ if(!preview||preview.beforeKey!==reviewStateKey(objects))throw new Error('Geometry changed after exclusion preview. Preview again.');
+ const fresh=previewJunctionExclusion(objects,findBoundaryIssues(objects,{tolerance:preview.tolerance}),preview);
+ if(JSON.stringify(fresh.candidate)!==JSON.stringify(preview.candidate)||JSON.stringify(fresh.componentIds)!==JSON.stringify(preview.componentIds)||JSON.stringify(fresh.ids)!==JSON.stringify(preview.ids))throw new Error('Exclusion preview changed. Preview again.');
+ return objects.map(o=>o.id===fresh.pathId?fresh.candidate:o);
 }
